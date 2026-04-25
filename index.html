@@ -1,0 +1,2682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NOF Builder — Consumer Law Group</title>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.2.4/build/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+  :root {
+    --ink: #1a1814;
+    --ink2: #4a4640;
+    --ink3: #8a847e;
+    --ink4: #bab5b0;
+    --paper: #f8f5f0;
+    --paper2: #f0ede8;
+    --paper3: #e8e3dc;
+    --accent: #c0392b;
+    --accent2: #922b21;
+    --green: #1e6b3c;
+    --blue: #1a4f8a;
+    --amber: #7d4e00;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(26,24,20,0.08), 0 4px 16px rgba(26,24,20,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── LAYOUT ── */
+  .shell { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .sidebar-sub {
+    font-size: 10px;
+    color: var(--ink4);
+    letter-spacing: 0.05em;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+
+  .sidebar-section {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin: 20px 0 8px;
+    padding: 0 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(248,245,240,0.6);
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.12); color: #fff; font-weight: 500; }
+  .nav-icon { font-size: 14px; opacity: 0.7; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    color: var(--ink3);
+  }
+
+  .main { flex: 1; padding: 2rem 2.5rem; max-width: 760px; }
+
+  /* ── HEADER ── */
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--ink); margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--ink3); }
+
+  /* ── STEPS ── */
+  .steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    padding: 14px 18px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--paper3);
+    box-shadow: var(--shadow);
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--ink4);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .step-item:hover { color: var(--ink2); }
+  .step-item.active { color: var(--ink); font-weight: 500; }
+  .step-item.done { color: var(--ink3); }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--paper3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500;
+    background: white;
+    transition: all 0.15s;
+  }
+  .step-item.active .step-num { background: var(--ink); color: white; border-color: var(--ink); }
+  .step-item.done .step-num { background: var(--paper2); border-color: var(--paper3); }
+  .step-line { flex: 1; height: 1px; background: var(--paper3); margin: 0 10px; min-width: 20px; }
+
+  /* ── SECTIONS ── */
+  .card {
+    background: white;
+    border: 1px solid var(--paper3);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--paper2);
+  }
+
+  /* ── FORM ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .full { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 11px; color: var(--ink3); font-weight: 500; letter-spacing: 0.02em; }
+
+  input[type=text], input[type=date], input[type=time], input[type=email], input[type=password], select, textarea {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--paper3);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--ink3);
+    box-shadow: 0 0 0 3px rgba(26,24,20,0.06);
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--paper3);
+    background: white;
+    color: var(--ink);
+  }
+  .btn:hover { background: var(--paper2); }
+  .btn-primary { background: var(--ink); color: white; border-color: var(--ink); }
+  .btn-primary:hover { background: #2e2a26; }
+  .btn-export { background: var(--blue); color: white; border-color: var(--blue); }
+  .btn-export:hover { background: #163d6e; }
+  .btn-danger { color: var(--accent); border-color: transparent; background: none; padding: 4px 8px; font-size: 12px; }
+  .btn-danger:hover { background: #fef0ee; }
+  .btn-add {
+    width: 100%; background: none; border: 1px dashed var(--paper3);
+    color: var(--ink3); font-size: 12px; padding: 7px;
+    border-radius: 6px; cursor: pointer; margin-top: 6px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn-add:hover { border-color: var(--ink3); color: var(--ink2); background: var(--paper2); }
+
+  .btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; margin-bottom: 30px; }
+
+  /* ── DOC CARDS ── */
+  .doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .doc-card {
+    border: 1.5px solid var(--paper3);
+    border-radius: var(--radius);
+    padding: 14px 12px 12px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    background: var(--paper);
+  }
+  .doc-card:hover { border-color: var(--ink3); background: white; }
+  .doc-card.on { border-color: var(--ink); background: white; }
+  .doc-card .check {
+    position: absolute; top: 10px; right: 10px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid var(--paper3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: white; background: white;
+    transition: all 0.15s;
+  }
+  .doc-card.on .check { background: var(--ink); border-color: var(--ink); }
+  .doc-card .dc-title { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .doc-card .dc-sub { font-size: 11px; color: var(--ink3); line-height: 1.4; }
+
+  /* ── TOGGLES ── */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--paper2);
+  }
+  .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .toggle-label { font-size: 13px; color: var(--ink); }
+  .toggle-sub { font-size: 11px; color: var(--ink3); margin-top: 1px; }
+  input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--ink); }
+
+  /* ── EXHIBIT ROWS ── */
+  .ex-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .ex-row input { font-size: 12px; }
+  .hint { font-size: 12px; color: var(--ink3); margin-bottom: 12px; line-height: 1.5; }
+
+  /* ── CASE LIST ── */
+  .case-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: white; border: 1px solid var(--paper3);
+    border-radius: var(--radius); margin-bottom: 8px; cursor: pointer;
+    transition: all 0.15s; box-shadow: var(--shadow);
+  }
+  .case-row:hover { border-color: var(--ink3); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,24,20,0.1); }
+  .case-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+  .case-meta { font-size: 11px; color: var(--ink3); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 20px; letter-spacing: 0.03em;
+  }
+  .badge-green { background: #d1fae5; color: var(--green); }
+  .badge-amber { background: #fef3c7; color: var(--amber); }
+  .badge-blue  { background: #dbeafe; color: var(--blue); }
+  .badge-red   { background: #fee2e2; color: var(--accent2); }
+
+  /* ── PACKET ROWS ── */
+  .packet-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; background: var(--paper); border-radius: 6px;
+    margin-bottom: 6px; font-size: 13px; border: 1px solid var(--paper3);
+  }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .search-bar input { flex: 1; }
+  .count-pill { font-size: 11px; color: var(--ink3); white-space: nowrap; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 4rem 1rem;
+    background: white; border: 1px dashed var(--paper3);
+    border-radius: var(--radius);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-title { font-size: 15px; font-weight: 500; color: var(--ink2); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; color: var(--ink3); }
+
+  /* ── STATUS SELECT ── */
+  .status-sel { font-size: 12px; padding: 5px 8px; border: 1px solid var(--paper3); border-radius: 6px; background: var(--paper); }
+  .save-msg { font-size: 12px; color: var(--green); font-weight: 500; }
+
+  /* ── SCREEN TRANSITIONS ── */
+  .screen { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── OUTPUT BOX ── */
+  .output-box {
+    background: white;
+    border: 1px solid var(--paper3);
+    border-radius: 6px;
+    padding: 0;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  .doc-preview {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #000;
+    padding: 28px 32px;
+    min-height: 300px;
+  }
+  .doc-preview .dp-center { text-align: center; }
+  .doc-preview .dp-bold   { font-weight: bold; }
+  .doc-preview .dp-row    { display: flex; justify-content: space-between; }
+  .doc-preview .dp-caption { display: grid; grid-template-columns: 1fr auto; gap: 0; }
+  .doc-preview .dp-caption .dp-left { padding-right: 8px; }
+  .doc-preview .dp-sep    { border-top: 1px solid #000; margin: 6px 0; }
+  .doc-preview .dp-hr     { border: none; border-top: 1px solid #999; margin: 8px 0; }
+  .doc-preview p          { margin: 0; min-height: 1.6em; }
+  .doc-preview .dp-indent { padding-left: 20px; }
+  .output-tabs { display: flex; gap: 0; border: 1px solid var(--paper3); border-radius: 6px; overflow: hidden; width: fit-content; margin-bottom: 10px; }
+  .otab { padding: 5px 14px; font-size: 12px; cursor: pointer; border: none; background: white; color: var(--ink3); font-family: 'DM Sans', sans-serif; }
+  .otab.active { background: var(--paper2); color: var(--ink); font-weight: 500; }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-card {
+    background: #232018; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 2.5rem 2rem; width: 340px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .login-card img { width: 160px; display: block; margin: 0 auto 24px; }
+  .login-card h2 { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 24px; letter-spacing: 0.03em; }
+  .login-field { margin-bottom: 14px; }
+  .login-field label { display: block; font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 5px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .login-field input { width: 100%; padding: 10px 12px; font-size: 13px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 7px; color: #fff; font-family: 'DM Sans', sans-serif; box-sizing: border-box; transition: border-color 0.15s; }
+  .login-field input:focus { outline: none; border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.09); }
+  .login-btn { width: 100%; padding: 11px; background: #c8a96e; color: #1a1814; border: none; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+  .login-btn:hover { opacity: 0.88; }
+  .login-error { font-size: 12px; color: #e07070; text-align: center; margin-top: 10px; min-height: 18px; }
+
+  /* ── ADMIN PANEL ── */
+  .admin-badge { font-size: 10px; background: #c8a96e; color: #1a1814; padding: 2px 7px; border-radius: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+  .user-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.55); padding: 6px 8px; border-radius: 6px; margin-bottom: 4px; }
+  .user-pill .uname { color: rgba(255,255,255,0.85); font-weight: 500; }
+
+  /* ── TEMPLATE MANAGER ── */
+  .tmpl-card { border: 1px solid var(--paper3); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .tmpl-card .tmpl-icon { font-size: 20px; }
+  .tmpl-card .tmpl-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .tmpl-card .tmpl-meta { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+  .tmpl-card .tmpl-actions { margin-left: auto; display: flex; gap: 6px; }
+  .tmpl-locked { opacity: 0.5; font-size: 11px; color: var(--ink3); }
+</style>
+</head>
+<body>
+<!-- ═══════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <img src="data:image/png;base64,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" alt="Consumer Law Group" />
+    <h2>NOF Builder — Acceso</h2>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <img src="data:image/png;base64,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" alt="Consumer Law Group" style="width:100%;max-width:160px;display:block;" />
+    </div>
+
+    <!-- User pill -->
+    <div class="user-pill" id="sidebar-user">
+      <span>👤</span>
+      <span class="uname" id="sidebar-username">—</span>
+      <span id="sidebar-admin-badge"></span>
+    </div>
+
+    <div class="sidebar-section">Workspace</div>
+    <button class="nav-item active" id="nav-cases" onclick="showView('cases')">
+      <span class="nav-icon">📋</span> Cases
+    </button>
+    <button class="nav-item" id="nav-new" onclick="newCase()">
+      <span class="nav-icon">＋</span> New Case
+    </button>
+
+    <!-- Admin only -->
+    <div id="nav-admin-section" class="hidden">
+      <div class="sidebar-section">Admin</div>
+      <button class="nav-item" id="nav-admin" onclick="showView('admin')">
+        <span class="nav-icon">⚙️</span> Panel de Admin
+      </button>
+    </div>
+
+    <div class="sidebar-footer">
+      <button onclick="doLogout()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.55);font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;width:100%;margin-bottom:10px;font-family:'DM Sans',sans-serif;">
+        ⬡ Cerrar sesión
+      </button>
+      v1.0 · Offline ready<br/><br/>
+      <span style="font-size:10px;color:#6b6660;">Created by<br/>
+      <span style="color:#d4c9bc;font-weight:500;">Juan Montejo</span></span>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════
+         VIEW: CASE LIST
+    ═══════════════════════════════ -->
+    <div id="view-cases" class="screen">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="page-title">Cases</div>
+          <div class="page-sub">Todos tus paquetes NOF guardados localmente</div>
+        </div>
+        <button class="btn btn-primary" onclick="newCase()">+ New Case</button>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar por nombre o A-Number..." oninput="renderCaseList()" />
+        <span class="count-pill" id="case-count">0 cases</span>
+      </div>
+
+      <div id="case-list-container"></div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         VIEW: CASE FORM
+    ═══════════════════════════════ -->
+    <div id="view-form" class="screen hidden">
+
+      <!-- Topbar -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <button class="btn" onclick="showView('cases')" style="font-size:12px;padding:6px 12px;">← Cases</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="save-msg hidden" id="save-msg">Saved ✓</span>
+          <select class="status-sel" id="case-status">
+            <option value="draft">Draft</option>
+            <option value="pending">Pending</option>
+            <option value="filed">Filed</option>
+          </select>
+          <button class="btn btn-primary" onclick="saveCase()" style="font-size:12px;padding:6px 14px;">Save</button>
+        </div>
+      </div>
+
+      <div class="page-header">
+        <div class="page-title" id="form-title">New Case</div>
+        <div class="page-sub">EOIR Immigration Court — NOF Packet</div>
+      </div>
+
+      <!-- Steps nav -->
+      <div class="steps">
+        <div class="step-item active" id="step-nav-1" onclick="goStep(1)"><div class="step-num">1</div><span>Case Info</span></div>
+        <div class="step-line"></div>
+        <div class="step-item" id="step-nav-2" onclick="goStep(2)"><div class="step-num">2</div><span>Documents</span></div>
+        <div class="step-line"></div>
+        <div class="step-item" id="step-nav-3" onclick="goStep(3)"><div class="step-num">3</div><span>Exhibits</span></div>
+        <div class="step-line"></div>
+        <div class="step-item" id="step-nav-4" onclick="goStep(4)"><div class="step-num">4</div><span>Export</span></div>
+      </div>
+
+      <!-- ── STEP 1 ── -->
+      <div id="step1">
+
+        <!-- ACIS/ECAS Screenshot Scanner -->
+        <div class="card" style="border:1.5px solid var(--paper3);background:var(--paper);">
+          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>⚡ Auto-fill from ACIS / ECAS screenshot</span>
+            <span style="font-size:10px;color:var(--ink3);font-weight:400;letter-spacing:0;">Sube el screenshot y extraemos los datos automáticamente</span>
+          </div>
+          <div id="acis-upload-zone" tabindex="0"
+            style="border:1.5px dashed var(--paper3);border-radius:var(--border-radius-md);padding:1.2rem;text-align:center;cursor:pointer;transition:all 0.15s;outline:none;"
+            onclick="document.getElementById('acis-file-input').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--ink3)'"
+            ondragleave="this.style.borderColor='var(--paper3)'"
+            ondrop="handleAcisDrop(event)"
+            onpaste="handleAcisPaste(event)"
+            onfocus="this.style.borderColor='var(--ink3)'"
+            onblur="this.style.borderColor='var(--paper3)'">
+            <input type="file" id="acis-file-input" accept="image/*" style="display:none" onchange="handleAcisFile(this.files[0])" />
+            <div style="font-size:22px;margin-bottom:6px;">📸</div>
+            <div style="font-size:13px;color:var(--ink2);font-weight:500;">Arrastra, haz clic o pega con <kbd style="background:var(--paper3);padding:1px 5px;border-radius:3px;font-size:11px;">Ctrl+V</kbd></div>
+            <div style="font-size:11px;color:var(--ink3);margin-top:3px;">ACIS · ECAS · Automated Case Information System</div>
+          </div>
+
+          <!-- Preview + status -->
+          <div id="acis-preview" style="display:none;margin-top:12px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <img id="acis-img" style="width:120px;border-radius:6px;border:1px solid var(--paper3);object-fit:cover;" />
+              <div style="flex:1;">
+                <div id="acis-status" style="font-size:13px;color:var(--ink2);margin-bottom:8px;"></div>
+                <div id="acis-extracted" style="display:none;">
+                  <div id="acis-fields" style="font-size:12px;color:var(--ink2);line-height:1.8;background:var(--paper2);padding:8px 12px;border-radius:6px;margin-bottom:8px;"></div>
+                  <div style="display:flex;gap:8px;">
+                    <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;" onclick="applyAcisData()">✓ Aplicar al formulario</button>
+                    <button class="btn" style="font-size:12px;padding:5px 12px;" onclick="clearAcis()">✕ Limpiar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Respondent</div>
+          <div class="grid2">
+            <div class="field"><label>Last Name(s)</label><input type="text" id="r_last" placeholder="MARADIAGA RUIZ" oninput="applyLastFormat()" /></div>
+            <div class="field"><label>First Name(s)</label><input type="text" id="r_first" placeholder="Yoadnie" oninput="applyFirstFormat()" /></div>
+            <div class="field"><label>A-Number</label><input type="text" id="r_anumber" placeholder="221-291-534" /></div>
+            <div class="field"><label>Detained</label>
+              <select id="r_detained">
+                <option value="NON-DETAINED">Non-Detained</option>
+                <option value="DETAINED">Detained</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Immigration Court</div>
+          <div class="grid2">
+            <div class="field"><label>Court</label>
+              <select id="r_court" onchange="populateJudges()">
+                <option value="">— Select Court —</option>
+              </select>
+            </div>
+            <div class="field"><label>Immigration Judge</label>
+              <select id="r_judge_select" onchange="onJudgeSelect(this.value)">
+                <option value="">— Select Judge —</option>
+                <option value="UNASSIGNED">Unassigned</option>
+              </select>
+              <input type="text" id="r_judge" placeholder="Or type judge name" style="margin-top:6px;" />
+            </div>
+            <div class="field">
+              <label>Next Hearing Date</label>
+              <input type="date" id="r_hearing_date" />
+              <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer;font-weight:400;">
+                <input type="checkbox" id="tbs_date" onchange="toggleTBS('date')" style="width:14px;height:14px;" />
+                To be Scheduled
+              </label>
+            </div>
+            <div class="field">
+              <label>Hearing Time</label>
+              <input type="time" id="r_hearing_time" value="13:00" />
+              <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer;font-weight:400;">
+                <input type="checkbox" id="tbs_time" onchange="toggleTBS('time')" style="width:14px;height:14px;" />
+                To be Scheduled
+              </label>
+            </div>
+            <div class="field full"><label>Hearing Type</label>
+              <select id="r_hearing_type">
+                <option>Master Hearing</option>
+                <option>Individual Hearing</option>
+                <option>Bond Hearing</option>
+                <option>Status Hearing</option>
+                <option>Merits Hearing</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Attorney / Firm</div>
+          <div class="grid2">
+            <div class="field"><label>Attorney Name</label><input type="text" id="r_atty_name" value="Rafael Castillo" /></div>
+            <div class="field"><label>Title</label>
+              <select id="r_atty_title"><option>Esq.</option><option>Attorney at Law</option></select>
+            </div>
+            <div class="field full"><label>Law Firm</label><input type="text" id="r_firm" value="Consumer Law Group, LLC" /></div>
+            <div class="field full"><label>Address</label><input type="text" id="r_addr" value="6232 N. Pulaski Rd., Ste. 300, Chicago, IL 60646" /></div>
+            <div class="field"><label>Phone</label><input type="text" id="r_phone" value="(312) 584-0112" /></div>
+            <div class="field"><label>Fax</label><input type="text" id="r_fax" value="(888) 270-8983" /></div>
+            <div class="field"><label>Email</label><input type="text" id="r_email" value="rcastillo@consumerlaw.com" /></div>
+            <div class="field"><label>Service Date</label><input type="date" id="r_svc_date" /></div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn btn-primary" onclick="goStep(2)">Continue →</button></div>
+      </div>
+
+      <!-- ── STEP 2 ── -->
+      <div id="step2" class="hidden">
+        <div class="card">
+          <div class="card-title">Select Documents</div>
+          <div class="doc-grid">
+            <div class="doc-card on" id="dc_i589" onclick="toggleDoc('i589',this)">
+              <div class="check">✓</div>
+              <div class="dc-title">NOF — I-589</div>
+              <div class="dc-sub">Submission of Application for Asylum & Withholding</div>
+            </div>
+            <div class="doc-card on" id="dc_exh" onclick="toggleDoc('exh',this)">
+              <div class="check">✓</div>
+              <div class="dc-title">NOF — Exhibits</div>
+              <div class="dc-sub">Submission of I-589 Supporting Documents</div>
+            </div>
+            <div class="doc-card on" id="dc_fee" onclick="toggleDoc('fee',this)">
+              <div class="check">✓</div>
+              <div class="dc-title">NOF — Fee Receipt</div>
+              <div class="dc-sub">Proof of I-589 Fee Payment Receipt</div>
+            </div>
+            <div class="doc-card" id="dc_42b" onclick="toggleDoc('42b',this)">
+              <div class="check"></div>
+              <div class="dc-title">NOF — 42B</div>
+              <div class="dc-sub">Application for Cancellation of Removal</div>
+            </div>
+            <div class="doc-card" id="dc_42b_fee" onclick="toggleDoc('42b_fee',this)">
+              <div class="check"></div>
+              <div class="dc-title">NOF — 42B Fee</div>
+              <div class="dc-sub">42B Fee Payment Receipt</div>
+            </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Options</div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Include Certificate of Service</div><div class="toggle-sub">Appended to each document</div></div>
+            <input type="checkbox" id="opt_cos" checked />
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">eService via ECAS</div><div class="toggle-sub">https://eservice.ice.gov</div></div>
+            <input type="checkbox" id="opt_ecas" checked />
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Pronoun</div></div>
+            <select id="opt_pronoun" style="width:auto;font-size:12px;">
+              <option value="his">His (male)</option>
+              <option value="her">Her (female)</option>
+              <option value="their">Their</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="goStep(1)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3 ── -->
+      <div id="step3" class="hidden">
+        <div class="card">
+          <div class="card-title">Exhibit List — NOF Exhibits</div>
+          <p class="hint">Estos son los exhibits del NOF — Exhibits. Edita labels, descripciones y números de página.</p>
+          <div id="exhibit-rows"></div>
+          <button class="btn-add" onclick="addExhibit()">+ Add Exhibit</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Fee Receipt — Page Number</div>
+          <div class="field" style="max-width:120px;">
+            <label>Page # for Exhibit A</label>
+            <input type="text" id="fee_pg" placeholder="5" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" onclick="goStep(2)">← Back</button>
+          <button class="btn btn-primary" onclick="buildPreview()">Preview & Export →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 4 ── -->
+      <div id="step4" class="hidden">
+        <div class="card">
+          <div class="card-title">Packet Summary</div>
+          <div id="packet-summary"></div>
+        </div>
+
+        <div class="card" id="preview-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="output-tabs" id="out-tabs"></div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="copyPreview()">Copy Text</button>
+            </div>
+          </div>
+          <div class="output-box"><div class="doc-preview" id="out-box"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Download</div>
+          <p class="hint" style="margin-bottom:12px;">Selecciona cuáles descargar — cada uno se descarga como un archivo .docx separado.</p>
+          <div id="download-checklist" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="saveCase()" style="font-size:13px;padding:9px 18px;">💾 Save Case</button>
+            <button class="btn btn-export" id="export-btn" onclick="exportDOCX()" style="font-size:13px;padding:9px 18px;">⬇ Download Selected</button>
+          </div>
+        </div>
+
+        <div class="btn-row"><button class="btn" onclick="goStep(3)">← Back</button></div>
+      </div>
+
+    </div><!-- /view-form -->
+
+    <!-- ═══════════════════════════════
+         VIEW: ADMIN PANEL
+    ═══════════════════════════════ -->
+    <div id="view-admin" class="screen hidden">
+      <div class="page-header">
+        <div class="page-title">Panel de Administración <span class="admin-badge">ADMIN</span></div>
+        <div class="page-sub">Gestión de usuarios y templates — Consumer Law Group, LLC</div>
+      </div>
+
+      <!-- Users section -->
+      <div class="card">
+        <div class="card-title">Usuarios del sistema</div>
+        <div id="admin-user-list"></div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--paper2);">
+          <div style="font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:10px;">Agregar nuevo usuario</div>
+          <div class="grid2" style="gap:8px;">
+            <div class="field"><label>Username</label><input type="text" id="new-user-name" placeholder="username" /></div>
+            <div class="field"><label>Password</label><input type="password" id="new-user-pass" placeholder="contraseña" /></div>
+            <div class="field"><label>Rol</label>
+              <select id="new-user-role">
+                <option value="user">Usuario</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="field" style="justify-content:flex-end;">
+              <button class="btn btn-primary" onclick="addUser()" style="margin-top:auto;">+ Agregar</button>
+            </div>
+          </div>
+          <div id="admin-user-msg" style="font-size:12px;margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <!-- Templates section -->
+      <div class="card">
+        <div class="card-title">Templates disponibles</div>
+        <p class="hint" style="margin-bottom:12px;">Los templates que cargues aquí estarán disponibles para todos los usuarios. Los usuarios no pueden modificarlos.</p>
+
+        <!-- Built-in templates -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--ink3);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Templates del sistema</div>
+          <div class="tmpl-card">
+            <div class="tmpl-icon">📄</div>
+            <div><div class="tmpl-name">NOF — I-589, Application for Asylum</div><div class="tmpl-meta">EOIR · Removal Defense</div></div>
+            <div class="tmpl-actions"><span class="tmpl-locked">🔒 Sistema</span></div>
+          </div>
+          <div class="tmpl-card">
+            <div class="tmpl-icon">📄</div>
+            <div><div class="tmpl-name">NOF — I-589 Supporting Exhibits</div><div class="tmpl-meta">EOIR · Removal Defense</div></div>
+            <div class="tmpl-actions"><span class="tmpl-locked">🔒 Sistema</span></div>
+          </div>
+          <div class="tmpl-card">
+            <div class="tmpl-icon">📄</div>
+            <div><div class="tmpl-name">NOF — I-589 Fee Payment Receipt</div><div class="tmpl-meta">EOIR · Removal Defense</div></div>
+            <div class="tmpl-actions"><span class="tmpl-locked">🔒 Sistema</span></div>
+          </div>
+        </div>
+
+        <!-- Custom templates uploaded by admin -->
+        <div>
+          <div style="font-size:11px;color:var(--ink3);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Templates personalizados</div>
+          <div id="custom-templates-list"></div>
+          <div style="margin-top:10px;border:1.5px dashed var(--paper3);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;" onclick="document.getElementById('tmpl-upload').click()">
+            <input type="file" id="tmpl-upload" accept=".docx,.pdf" multiple style="display:none" onchange="uploadTemplates(this)" />
+            <div style="font-size:18px;margin-bottom:4px;">📎</div>
+            <div style="font-size:13px;color:var(--ink2);">Subir templates (.docx / .pdf)</div>
+            <div style="font-size:11px;color:var(--ink3);margin-top:2px;">Serán accesibles para todos los usuarios</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let cases = []; // loaded per-user after login
+let currentCaseId = null;
+let selectedDocs = { i589: true, exh: true, fee: true, '42b': false, '42b_fee': false };
+let exhibits = [
+  { id: 1, label: 'Group Exhibit A', desc: 'Identifying Documents — Birth Certificate with English Translation', page: '' },
+  { id: 2, label: 'Group Exhibit B', desc: "Respondent's Personal Declaration with English Translation", page: '' },
+];
+let nextExId = 3;
+let generatedTexts = {};
+let activeDocKey = 'i589';
+let currentStep = 1;
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showView(v) {
+  document.getElementById('view-cases').classList.toggle('hidden', v !== 'cases');
+  document.getElementById('view-form').classList.toggle('hidden', v !== 'form');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-' + (v === 'form' ? 'new' : 'cases')).classList.add('active');
+  if (v === 'cases') renderCaseList();
+}
+
+function goStep(n) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('step'+i).classList.toggle('hidden', i !== n);
+    const nav = document.getElementById('step-nav-'+i);
+    nav.classList.toggle('active', i === n);
+    nav.classList.toggle('done', i < n);
+  });
+  currentStep = n;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CASE CRUD
+// ═══════════════════════════════════════════════════════
+function newCase() {
+  currentCaseId = null;
+  selectedDocs = { i589: true, exh: true, fee: true, '42b': false, '42b_fee': false };
+  exhibits = [
+    { id: 1, label: 'Group Exhibit A', desc: 'Identifying Documents — Birth Certificate with English Translation', page: '' },
+    { id: 2, label: 'Group Exhibit B', desc: "Respondent's Personal Declaration with English Translation", page: '' },
+  ];
+  nextExId = 3;
+
+  // Reset form
+  ['r_last','r_first','r_anumber','r_judge','r_hearing_date','r_fee_pg'].forEach(id => {
+    const el = document.getElementById(id); if(el) { el.value = ''; el.disabled = false; el.style.opacity = '1'; }
+  });
+  document.getElementById('r_detained').value = 'NON-DETAINED';
+  document.getElementById('r_court').value = '';
+  document.getElementById('r_judge_select').innerHTML = '<option value="">— Select Judge —</option><option value="UNASSIGNED">Unassigned</option>';
+  document.getElementById('r_hearing_time').value = '13:00';
+  document.getElementById('r_hearing_time').disabled = false;
+  document.getElementById('r_hearing_time').style.opacity = '1';
+  document.getElementById('tbs_date').checked = false;
+  document.getElementById('tbs_time').checked = false;
+  document.getElementById('r_hearing_type').value = 'Master Hearing';
+  document.getElementById('r_atty_name').value = 'Rafael Castillo';
+  document.getElementById('r_atty_title').value = 'Esq.';
+  document.getElementById('r_firm').value = 'Consumer Law Group, LLC';
+  document.getElementById('r_addr').value = '6232 N. Pulaski Rd., Ste. 300, Chicago, IL 60646';
+  document.getElementById('r_phone').value = '(312) 584-0112';
+  document.getElementById('r_fax').value = '(888) 270-8983';
+  document.getElementById('r_email').value = 'rcastillo@consumerlaw.com';
+  document.getElementById('r_svc_date').value = todayStr();
+  document.getElementById('fee_pg').value = '';
+  document.getElementById('case-status').value = 'draft';
+  document.getElementById('opt_cos').checked = true;
+  document.getElementById('opt_ecas').checked = true;
+  document.getElementById('opt_pronoun').value = 'his';
+
+  // Reset doc cards
+  ['i589','exh','fee'].forEach(k => {
+    const el = document.getElementById('dc_'+k);
+    el.classList.add('on');
+    el.querySelector('.check').textContent = '✓';
+  });
+
+  renderExhibits();
+  updateTitle();
+  goStep(1);
+  showView('form');
+}
+
+function openCase(id) {
+  const c = cases.find(x => x.id === id);
+  if (!c) return;
+  currentCaseId = id;
+  selectedDocs = c.selectedDocs || { i589: true, exh: true, fee: true, '42b': false, '42b_fee': false };
+  exhibits = c.exhibits || [];
+  nextExId = Math.max(...exhibits.map(e => e.id), 0) + 1;
+
+  document.getElementById('r_last').value = formatLastName(c.rLast || '');
+  document.getElementById('r_first').value = formatFirstName(c.rFirst || '');
+  document.getElementById('r_anumber').value = c.aNumber || '';
+  document.getElementById('r_detained').value = c.detained || 'NON-DETAINED';
+  document.getElementById('r_court').value = c.court || '';
+  populateJudges();
+  document.getElementById('r_judge').value = c.judge || '';
+  // restore judge dropdown selection
+  const jSel = document.getElementById('r_judge_select');
+  const jOpt = Array.from(jSel.options).find(o => o.value === c.judge);
+  if (jOpt) jSel.value = c.judge;
+  if (c.judge === 'Unassigned') {
+    document.getElementById('r_judge').disabled = true;
+    document.getElementById('r_judge').style.opacity = '0.45';
+  }
+  // TBS date
+  document.getElementById('tbs_date').checked = !!c.tbsDate;
+  document.getElementById('r_hearing_date').value = c.tbsDate ? '' : (c.hearingDate || '');
+  document.getElementById('r_hearing_date').disabled = !!c.tbsDate;
+  document.getElementById('r_hearing_date').style.opacity = c.tbsDate ? '0.45' : '1';
+  // TBS time
+  document.getElementById('tbs_time').checked = !!c.tbsTime;
+  document.getElementById('r_hearing_time').value = c.tbsTime ? '' : (c.hearingTime || '13:00');
+  document.getElementById('r_hearing_time').disabled = !!c.tbsTime;
+  document.getElementById('r_hearing_time').style.opacity = c.tbsTime ? '0.45' : '1';
+  document.getElementById('r_hearing_type').value = c.hearingType || 'Master Hearing';
+  document.getElementById('r_atty_name').value = c.attyName || 'Rafael Castillo';
+  document.getElementById('r_atty_title').value = c.attyTitle || 'Esq.';
+  document.getElementById('r_firm').value = c.firm || 'Consumer Law Group, LLC';
+  document.getElementById('r_addr').value = c.addr || '6232 N. Pulaski Rd., Ste. 300, Chicago, IL 60646';
+  document.getElementById('r_phone').value = c.phone || '(312) 584-0112';
+  document.getElementById('r_fax').value = c.fax || '(888) 270-8983';
+  document.getElementById('r_email').value = c.email || 'rcastillo@consumerlaw.com';
+  document.getElementById('r_svc_date').value = c.svcDate || todayStr();
+  document.getElementById('fee_pg').value = c.feePg || '';
+  document.getElementById('case-status').value = c.status || 'draft';
+  document.getElementById('opt_cos').checked = c.cos !== false;
+  document.getElementById('opt_ecas').checked = c.ecas !== false;
+  document.getElementById('opt_pronoun').value = c.pronoun || 'his';
+
+  // Sync doc cards
+  ['i589','exh','fee'].forEach(k => {
+    const on = selectedDocs[k];
+    const el = document.getElementById('dc_'+k);
+    el.classList.toggle('on', on);
+    el.querySelector('.check').textContent = on ? '✓' : '';
+  });
+
+  renderExhibits();
+  updateTitle();
+  goStep(1);
+  showView('form');
+}
+
+function saveCase() {
+  const data = getFormData();
+  const msg = document.getElementById('save-msg');
+  if (currentCaseId) {
+    const idx = cases.findIndex(c => c.id === currentCaseId);
+    if (idx !== -1) cases[idx] = { ...cases[idx], ...data };
+  } else {
+    currentCaseId = Date.now().toString();
+    cases.unshift({ id: currentCaseId, createdAt: new Date().toISOString(), ...data });
+  }
+  const storageKey = typeof getCasesKey === 'function' ? getCasesKey() : 'nof_cases';
+  localStorage.setItem(storageKey, JSON.stringify(cases));
+  msg.classList.remove('hidden');
+  setTimeout(() => msg.classList.add('hidden'), 2000);
+}
+
+function deleteCase(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this case?')) return;
+  cases = cases.filter(c => c.id !== id);
+  const _dk = typeof getCasesKey === 'function' ? getCasesKey() : 'nof_cases';
+  localStorage.setItem(_dk, JSON.stringify(cases));
+  renderCaseList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  FORM HELPERS
+// ═══════════════════════════════════════════════════════
+function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+function checked(id) { return document.getElementById(id)?.checked; }
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function fmtDate(v, tbs) {
+  if (tbs) return 'To be Scheduled';
+  if (!v) return '___________';
+  const d = new Date(v + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+}
+
+function fmtTime(v, tbs) {
+  if (tbs) return 'To be Scheduled';
+  if (!v) return '___________';
+  const [h, m] = v.split(':');
+  const hr = parseInt(h);
+  return `${hr > 12 ? hr-12 : hr}:${m || '00'} ${hr >= 12 ? 'PM' : 'AM'}`;
+}
+
+function getFormData() {
+  return {
+    rLast: val('r_last'), rFirst: val('r_first'), aNumber: val('r_anumber'),
+    detained: val('r_detained'), court: val('r_court'),
+    judge: val('r_judge'), hearingDate: val('r_hearing_date'),
+    hearingTime: val('r_hearing_time'), hearingType: val('r_hearing_type'),
+    tbsDate: checked('tbs_date'), tbsTime: checked('tbs_time'),
+    attyName: val('r_atty_name'), attyTitle: val('r_atty_title'),
+    firm: val('r_firm'), addr: val('r_addr'), phone: val('r_phone'),
+    fax: val('r_fax'), email: val('r_email'), svcDate: val('r_svc_date'),
+    feePg: val('fee_pg'), pronoun: val('opt_pronoun'),
+    cos: checked('opt_cos'), ecas: checked('opt_ecas'),
+    status: val('case-status'), selectedDocs, exhibits,
+  };
+}
+
+// ── Name formatting rules ──
+// Last name(s): ALL CAPS  e.g. "ABREU GARCIA"
+// First name(s): Title Case  e.g. "Yoadnie"
+function formatLastName(str) {
+  return str.toUpperCase();
+}
+function formatFirstName(str) {
+  // Each word: first letter uppercase, rest lowercase
+  return str.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+function applyLastFormat() {
+  const el = document.getElementById('r_last');
+  const pos = el.selectionStart;
+  el.value = formatLastName(el.value);
+  el.setSelectionRange(pos, pos);
+  updateTitle();
+}
+function applyFirstFormat() {
+  const el = document.getElementById('r_first');
+  const pos = el.selectionStart;
+  el.value = formatFirstName(el.value);
+  el.setSelectionRange(pos, pos);
+  updateTitle();
+}
+function updateTitle() {
+  const l = val('r_last'), f = val('r_first');
+  document.getElementById('form-title').textContent = l ? `${l}, ${f}` : 'New Case';
+}
+
+function toggleDoc(key, el) {
+  selectedDocs[key] = !selectedDocs[key];
+  el.classList.toggle('on', selectedDocs[key]);
+  el.querySelector('.check').textContent = selectedDocs[key] ? '✓' : '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXHIBITS
+// ═══════════════════════════════════════════════════════
+function renderExhibits() {
+  const c = document.getElementById('exhibit-rows');
+  c.innerHTML = '';
+  exhibits.forEach(ex => {
+    const row = document.createElement('div');
+    row.className = 'ex-row';
+    row.innerHTML = `
+      <input type="text" value="${ex.label}" style="width:130px;" placeholder="Exhibit A" onchange="updEx(${ex.id},'label',this.value)" />
+      <input type="text" value="${ex.desc}" style="flex:1;" placeholder="Description" onchange="updEx(${ex.id},'desc',this.value)" />
+      <input type="text" value="${ex.page}" style="width:50px;" placeholder="Pg" onchange="updEx(${ex.id},'page',this.value)" />
+      <button class="btn btn-danger" onclick="delEx(${ex.id})">✕</button>
+    `;
+    c.appendChild(row);
+  });
+}
+
+function addExhibit() {
+  const letter = String.fromCharCode(65 + exhibits.length);
+  exhibits.push({ id: nextExId++, label: `Group Exhibit ${letter}`, desc: '', page: '' });
+  renderExhibits();
+}
+
+function updEx(id, field, val) {
+  const ex = exhibits.find(e => e.id === id);
+  if (ex) ex[field] = val;
+}
+
+function delEx(id) {
+  exhibits = exhibits.filter(e => e.id !== id);
+  renderExhibits();
+}
+
+// ═══════════════════════════════════════════════════════
+//  CASE LIST RENDER
+// ═══════════════════════════════════════════════════════
+const STATUS_BADGE = {
+  draft: 'badge-amber',
+  pending: 'badge-blue',
+  filed: 'badge-green',
+};
+
+function renderCaseList() {
+  const q = document.getElementById('search-input')?.value?.toLowerCase() || '';
+  const filtered = cases.filter(c =>
+    (c.rLast||'').toLowerCase().includes(q) ||
+    (c.rFirst||'').toLowerCase().includes(q) ||
+    (c.aNumber||'').toLowerCase().includes(q)
+  );
+  document.getElementById('case-count').textContent = `${filtered.length} case${filtered.length !== 1 ? 's' : ''}`;
+  const container = document.getElementById('case-list-container');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No cases yet</div><div class="empty-sub">Click "New Case" to create your first NOF packet</div></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(c => {
+    const courtName = (c.court || '').split('|')[0];
+    const hDate = c.tbsDate ? 'To be Scheduled' : (c.hearingDate ? fmtDate(c.hearingDate) : '—');
+    const badge = STATUS_BADGE[c.status] || 'badge-amber';
+    return `
+      <div class="case-row" onclick="openCase('${c.id}')">
+        <div>
+          <div class="case-name">${c.rLast || '—'}, ${c.rFirst || ''}</div>
+          <div class="case-meta">A#${c.aNumber || '—'} &nbsp;·&nbsp; ${courtName} &nbsp;·&nbsp; Judge ${c.judge || '—'}</div>
+          <div class="case-meta">Next Hearing: ${hDate}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span class="badge ${badge}">${c.status || 'draft'}</span>
+          <button class="btn btn-danger" onclick="deleteCase('${c.id}',event)" style="font-size:11px;">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEXT PREVIEW BUILDERS
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  HTML PREVIEW — mirrors PDF exactly
+// ═══════════════════════════════════════════════════════
+
+function previewCourtHeader(courtLine, courtCity) {
+  return `
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">UNITED STATES DEPARTMENT OF JUSTICE</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">EXECUTIVE OFFICE FOR IMMIGRATION REVIEW</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">${courtLine}</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">${courtCity}</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>`;
+}
+
+function previewCaseCaption(d) {
+  const rName = (d.rLast||'') + ', ' + (d.rFirst||'');
+  return `
+    <table style="width:58%;border-collapse:collapse;font-family:inherit;font-size:inherit;">
+      <tr>
+        <td style="padding:2px 0;width:55%;">____________________________________</td>
+        <td style="padding:2px 0;"></td>
+      </tr>
+      <tr><td>In the Matter of:</td><td>)</td></tr>
+      <tr><td></td><td>)</td></tr>
+      <tr>
+        <td>${rName}</td>
+        <td>) &nbsp;&nbsp; <span style="margin-left:20px;">A#${d.aNumber||''}</span></td>
+      </tr>
+      <tr><td></td><td>)</td></tr>
+      <tr><td></td><td>)</td></tr>
+      <tr><td>In removal proceedings</td><td>)</td></tr>
+      <tr><td style="border-top:1px solid #000;padding-top:0;">____________________________________</td><td style="border-top:1px solid #000;">)</td></tr>
+    </table>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>`;
+}
+
+function previewJudgeLine(d) {
+  const judgeLabel = d.judge || 'Unassigned';
+  const nextHearing = d.tbsDate ? 'To be Scheduled' : fmtDate(d.hearingDate, false);
+  return `
+    <div style="display:flex;justify-content:space-between;width:80%;">
+      <span><b>Immigration Judge:</b> ${judgeLabel}</span>
+      <span><b>Next Hearing:</b> ${nextHearing}</span>
+    </div>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>`;
+}
+
+function previewAttyBlock(d) {
+  const svcStr = fmtDate(d.svcDate, false);
+  return `
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <div style="margin-left:50%;font-size:inherit;">
+      <p style="margin:0;">Respectfully submitted,</p>
+      <p style="margin:0;min-height:2em;">&nbsp;</p>
+      <p style="margin:0;">________________________</p>
+      <p style="margin:0;"> ${d.attyName||''}</p>
+      <p style="margin:0;">${d.firm||''}</p>
+      <p style="margin:0;">6232 N. Pulaski Rd.,</p>
+      <p style="margin:0;">Suite 300</p>
+      <p style="margin:0;">Chicago, IL 60646</p>
+      <p style="margin:0;">${d.email||''}</p>
+      <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+      <p style="margin:0;">Dated ${svcStr}</p>
+    </div>`;
+}
+
+function previewCOS(d, docTitle) {
+  const city = (d.court||'|').split('|')[0].replace(' IMMIGRATION COURT','');
+  const method = d.ecas
+    ? 'delivered via ECAS/eservice (https://eservice.ice.gov) DHS/' + city
+    : 'delivered via U.S. Mail';
+  const svcStr = fmtDate(d.svcDate, false);
+  const [courtLine, courtCity] = (d.court||'|').split('|');
+  return `
+    <div style="border-top:2px dashed #ccc;margin:20px 0 0;padding-top:4px;font-style:italic;font-size:10px;color:#888;">COS page</div>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">CERTIFICATE OF SERVICE</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:justify;">I, ${d.attyName||''} hereby certify that I served the Office of the Principal Legal Advisor a true and correct copy of ${docTitle} to be ${method} on ${svcStr}</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;">__________________________</p>
+    <p style="margin:0;">${d.attyName||''}, ${d.attyTitle||''}</p>
+    <p style="margin:0;">${d.firm||''}</p>
+    <p style="margin:0;">${d.addr||''}</p>
+    <p style="margin:0;">${d.phone||''}</p>
+    <p style="margin:0;">${d.email||''}</p>`;
+}
+
+function htmlI589(d) {
+  const [courtLine, courtCity] = (d.court||'|').split('|');
+  const rName = (d.rFirst||'') + ' ' + (d.rLast||'').replace(/,.*$/,'');
+  const pronoun = d.pronoun || 'his';
+  const title1 = "RESPONDENT'S SUBMISSION OF I-589, APPLICATION FOR ASYLUM";
+  const title2 = "AND FOR WITHHOLDING OF REMOVAL";
+  let html = `
+    <p style="margin:0;"><b>${d.attyName||''}, ${d.attyTitle||''}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${d.detained||'NON-DETAINED'}</b></p>
+    <p style="margin:0;">${d.firm||''}</p>
+    <p style="margin:0;">6232 N. Pulaski Rd., Ste. 300</p>
+    <p style="margin:0;">Chicago, IL 60646</p>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    ${previewJudgeLine(d)}
+    <p style="margin:0;text-align:center;font-weight:bold;">${title1}</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">${title2}</p>
+    <div style="border-top:2px dashed #ccc;margin:20px 0 0;padding-top:4px;font-style:italic;font-size:10px;color:#888;">Body page (page 2)</div>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    <p style="margin:0;text-align:center;font-weight:bold;">${title1}</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">${title2}</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:justify;text-indent:2em;">Respondent, ${rName} by and through ${pronoun} attorney, ${d.attyName||''} of ${d.firm||''}, hereby submits Form I-589, Application for Asylum and for Withholding of Removal, including Supporting Documents. In support thereof, Respondent submits the following.</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0 0 0 2em;">I. &nbsp;&nbsp; One (1) original I-589, Application for Asylum and for Withholding of Removal.</p>
+    ${previewAttyBlock(d)}`;
+  if (d.cos) html += previewCOS(d, "Respondent’s Application for Asylum and Withholding of Removal");
+  return html;
+}
+
+function htmlExhibits(d) {
+  const [courtLine, courtCity] = (d.court||'|').split('|');
+  const rName = (d.rFirst||'') + ' ' + (d.rLast||'').replace(/,.*$/,'');
+  const pronoun = d.pronoun || 'his';
+  const title1 = "RESPONDENT'S SUBMISSION OF I-589 SUPPORTING DOCUMENTS";
+  const exLines = (d.exhibits||[]).map(ex =>
+    `<div style="display:flex;justify-content:space-between;"><span>${ex.label||''} &ndash; ${ex.desc||''}</span><span>${ex.page||''}</span></div>`
+  ).join('');
+  let html = `
+    <p style="margin:0;"><b>${d.attyName||''}, ${d.attyTitle||''}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${d.detained||'NON-DETAINED'}</b></p>
+    <p style="margin:0;">${d.firm||''}</p>
+    <p style="margin:0;">6232 N. Pulaski Rd., Ste. 300</p>
+    <p style="margin:0;">Chicago, IL 60646</p>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    ${previewJudgeLine(d)}
+    <p style="margin:0;text-align:center;font-weight:bold;">${title1}</p>
+    <div style="border-top:2px dashed #ccc;margin:20px 0 0;padding-top:4px;font-style:italic;font-size:10px;color:#888;">Body page</div>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    <p style="margin:0;text-align:center;font-weight:bold;">${title1}</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:justify;text-indent:2em;">Respondent ${rName} by and through ${pronoun} attorney, ${d.attyName||''}, of ${d.firm||''}, hereby submits I-589 supporting documents. In support thereof, Respondent submits the following in tabulated order:</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0 0 0 2em;">&bull; Supporting Documents:</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:center;font-weight:bold;">SUPPORTING DOCUMENTS</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    ${exLines}
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;">Additional supporting documents will be submitted at a future Immigration Court hearing date.</p>
+    ${previewAttyBlock(d)}`;
+  if (d.cos) html += previewCOS(d, "Respondent’s Exhibits");
+  (d.exhibits||[]).forEach(ex => {
+    html += `<div style="border-top:2px dashed #ccc;margin:20px 0 0;padding-top:8px;text-align:center;font-weight:bold;">EXHIBIT ${(ex.label||'').replace('Group Exhibit ','').replace('Exhibit ','')}</div>`;
+  });
+  return html;
+}
+
+function htmlFeeReceipt(d) {
+  const [courtLine, courtCity] = (d.court||'|').split('|');
+  const rName = (d.rFirst||'') + ' ' + (d.rLast||'').replace(/,.*$/,'');
+  const pronoun = d.pronoun || 'his';
+  const title1 = "RESPONDENT’S I-589 FEE RECEIPT";
+  let html = `
+    <p style="margin:0;"><b>${d.attyName||''}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${d.detained||'NON-DETAINED'}</b></p>
+    <p style="margin:0;">${d.firm||''}</p>
+    <p style="margin:0;">6232 N. Pulaski Rd., Ste. 300</p>
+    <p style="margin:0;">Chicago, IL 60646</p>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    ${previewJudgeLine(d)}
+    <p style="margin:0;text-align:center;font-weight:bold;">${title1}</p>
+    <div style="border-top:2px dashed #ccc;margin:20px 0 0;padding-top:4px;font-style:italic;font-size:10px;color:#888;">Body page</div>
+    ${previewCourtHeader(courtLine, courtCity)}
+    ${previewCaseCaption(d)}
+    <p style="margin:0;text-align:center;font-weight:bold;">${title1}</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;text-align:justify;text-indent:2em;">Respondent, ${rName} by and through ${pronoun} attorneys ${d.firm||''}, hereby submits Proof of I-589 Fee Payment Receipt. In support thereof, Respondent submits the following in tabulated order:</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0 0 0 2em;">&bull; Supporting Documents;</p>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <div style="display:flex;justify-content:flex-end;"><b>PAGE NO</b></div>
+    <p style="margin:0;min-height:1.5em;">&nbsp;</p>
+    <p style="margin:0;font-weight:bold;">Exhibit A &ndash; Documents in Support</p>
+    <div style="display:flex;justify-content:space-between;">
+      <span>Copy of Respondent's I-589 Fee Payment Receipt</span>
+      <span>${d.feePg||'__'}</span>
+    </div>
+    ${previewAttyBlock(d)}`;
+  if (d.cos) html += previewCOS(d, "Respondent’s I-589 Fee Payment Receipt");
+  html += `<div style="border-top:2px dashed #ccc;margin:20px 0 0;padding:8px 0;text-align:center;font-weight:bold;">EXHIBIT A</div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+//  PREVIEW
+// ═══════════════════════════════════════════════════════
+function buildPreview() {
+  const d = getFormData();
+  generatedTexts = {};
+  const defs = [
+    { key: 'i589', label: 'I-589',       fn: htmlI589 },
+    { key: 'exh',  label: 'Exhibits',    fn: htmlExhibits },
+    { key: 'fee',  label: 'Fee Receipt', fn: htmlFeeReceipt },
+  ];
+  const active = defs.filter(x => selectedDocs[x.key]);
+  active.forEach(x => { generatedTexts[x.key] = { label: x.label, html: x.fn(d) }; });
+
+  const sumEl = document.getElementById('packet-summary');
+  sumEl.innerHTML = active.map(x =>
+    `<div class="packet-row"><span>📄 NOF — ${x.label}</span><span class="badge badge-green">Ready</span></div>`
+  ).join('');
+
+  // Render download checklist — all checked by default
+  const dlEl = document.getElementById('download-checklist');
+  if (dlEl) {
+    dlEl.innerHTML = active.map(x => `
+      <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--paper2);border-radius:6px;cursor:pointer;font-size:13px;border:1px solid var(--paper3);">
+        <input type="checkbox" id="dl_${x.key}" checked style="width:15px;height:15px;accent-color:var(--ink);cursor:pointer;" />
+        <span>📄 <strong>NOF — ${x.label}</strong></span>
+        <span style="margin-left:auto;font-size:11px;color:var(--ink3);">${
+          x.key === 'i589' ? 'Application for Asylum & WOR' :
+          x.key === 'exh'  ? 'I-589 Supporting Exhibits' :
+                             'I-589 Fee Payment Receipt'
+        }</span>
+      </label>`
+    ).join('');
+  }
+
+  const tabsEl = document.getElementById('out-tabs');
+  tabsEl.innerHTML = active.map((x, i) =>
+    `<button class="otab${i===0?' active':''}" onclick="showTab('${x.key}',this)">${x.label}</button>`
+  ).join('');
+
+  if (active.length > 0) {
+    activeDocKey = active[0].key;
+    document.getElementById('out-box').innerHTML = generatedTexts[active[0].key].html;
+  }
+  goStep(4);
+}
+
+function showTab(key, el) {
+  activeDocKey = key;
+  document.getElementById('out-box').innerHTML = generatedTexts[key]?.html || '';
+  document.querySelectorAll('.otab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function copyPreview() {
+  const text = document.getElementById('out-box').innerText;
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+// ═══════════════════════════════════════════════════════
+//  DOCX EXPORT — exact match to PDF template
+// ═══════════════════════════════════════════════════════
+async function exportDOCX() {
+  const btn = document.getElementById('export-btn');
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  try {
+    const docxLib = window.docx;
+    if (!docxLib || !docxLib.Document)
+      throw new Error('Librería DOCX no cargó. Necesitas internet la primera vez.');
+    const d = getFormData();
+    if (!d.court) throw new Error('Selecciona un tribunal antes de exportar.');
+
+    const {
+      Document, Packer, Paragraph, TextRun, AlignmentType,
+      PageBreak, TabStopType, IndentationTypes
+    } = docxLib;
+
+    // ── Page: US Letter, 1" margins all sides ──
+    const PAGE = {
+      size: { width: 12240, height: 15840 },
+      margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+    };
+    // Content width = 12240 - 1440 - 1440 = 9360
+
+    const FONT = 'Times New Roman';
+    const SZ   = 24; // 12pt
+
+    // ── Run helpers ──
+    function r(text, bold) {
+      return new TextRun({ text: String(text||''), font: FONT, size: SZ, bold: !!bold });
+    }
+    function rBold(text) { return r(text, true); }
+    function rTab()      { return new TextRun({ text: '\t', font: FONT, size: SZ }); }
+
+    // ── Paragraph helpers ──
+    // Base spacing: after=0, single line — matches template
+    const BASE = { spacing: { after: 0, line: 240, lineRule: 'auto' } };
+
+    function pLeft(runs, tabStops)   {
+      return new Paragraph({ ...BASE, alignment: AlignmentType.LEFT,    tabStops: tabStops||[], children: runs });
+    }
+    function pCenter(runs)           {
+      return new Paragraph({ ...BASE, alignment: AlignmentType.CENTER,  children: runs });
+    }
+    function pJustify(runs, tabStops) {
+      return new Paragraph({ ...BASE, alignment: AlignmentType.BOTH,    tabStops: tabStops||[], children: runs });
+    }
+    function pEmpty() {
+      return new Paragraph({ ...BASE, children: [r('')] });
+    }
+    function pBreak() {
+      return new Paragraph({ ...BASE, children: [new PageBreak()] });
+    }
+    // Paragraph with 720 DXA (0.5") first-line indent (for body text)
+    function pBodyIndent(runs) {
+      return new Paragraph({ ...BASE, alignment: AlignmentType.BOTH, indent: { firstLine: 720 }, children: runs });
+    }
+
+    // ── Data ──
+    const [courtLine, courtCity] = (d.court||'|').split('|');
+    const rLast    = d.rLast  || '';
+    const rFirst   = d.rFirst || '';
+    const rName    = (rFirst + ' ' + rLast.replace(/,.*$/, '')).trim();
+    const pronoun  = d.pronoun || 'his';
+    const attyName = d.attyName || '';
+    const attyTitle= d.attyTitle || '';
+    const firm     = d.firm || '';
+    const addr     = d.addr || '';
+    const phone    = d.phone || '';
+    const fax      = d.fax  || '';
+    const email    = d.email || '';
+    const detained = d.detained || 'NON-DETAINED';
+    const judgeLabel  = d.judge || 'Unassigned';
+    const hearingStr  = fmtDate(d.hearingDate, d.tbsDate);  // Just the date, no "at time"
+    const timeStr     = fmtTime(d.hearingTime, d.tbsTime);
+    const svcStr      = fmtDate(d.svcDate, false);
+    const city        = courtLine.replace(' IMMIGRATION COURT', '');
+    const method      = d.ecas
+      ? 'delivered via ECAS/eservice (https://eservice.ice.gov) DHS/' + city
+      : 'delivered via U.S. Mail';
+
+    // Tab stop: right edge of content (9360)
+    const T_RIGHT  = { type: TabStopType.RIGHT,  position: 9360 };
+    // Tab stop for caption ) column — at ~4320 (left half)
+    const T_PAREN  = { type: TabStopType.LEFT,   position: 4320 };
+    // Tab stop for A# column — at ~4680
+    const T_ANUM   = { type: TabStopType.LEFT,   position: 4680 };
+    // Tab stop center for judge/hearing split
+    const T_HALF   = { type: TabStopType.LEFT,   position: 4680 };
+    // Tab stop for right-side atty block — at ~5040 (right half start)
+    const T_ATTY   = { type: TabStopType.LEFT,   position: 5040 };
+
+    // ══════════════════════════════════════════════════
+    //  COURT HEADER (centered, bold) — used on all pages
+    // ══════════════════════════════════════════════════
+    function courtHeader() {
+      return [
+        pEmpty(),
+        pCenter([rBold('UNITED STATES DEPARTMENT OF JUSTICE')]),
+        pCenter([rBold('EXECUTIVE OFFICE FOR IMMIGRATION REVIEW')]),
+        pCenter([rBold(courtLine)]),
+        pCenter([rBold(courtCity)]),
+        pEmpty(),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  CASE CAPTION — the ) bracket section
+    //  paren col at 4320, A# at 4680
+    // ══════════════════════════════════════════════════
+    function caseCaption() {
+      return [
+        pLeft([r('____________________________________')]),
+        pLeft([r('In the Matter of:'),         rTab(), r(')')],           [T_PAREN]),
+        pLeft([                                 rTab(), r(')')],           [T_PAREN]),
+        pLeft([r(rLast + ', ' + rFirst),        rTab(), r(')'), rTab(), r('A#' + (d.aNumber||''))], [T_PAREN, T_ANUM]),
+        pLeft([                                 rTab(), r(')')],           [T_PAREN]),
+        pLeft([                                 rTab(), r(')')],           [T_PAREN]),
+        pLeft([r('In removal proceedings'),    rTab(), r(')')],           [T_PAREN]),
+        pLeft([r('____________________________________)')]),
+        pEmpty(),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  JUDGE / HEARING LINE — cover page only
+    //  "Immigration Judge: X    Next Hearing: Y"
+    // ══════════════════════════════════════════════════
+    function judgeHearingLine() {
+      // From PDF: "Immigration Judge: Unassigned    Next Hearing: To be Scheduled"
+      // No "at time" — just the date/TBS string
+      const nextHearing = d.tbsDate ? 'To be Scheduled' : fmtDate(d.hearingDate, false);
+      return [
+        pLeft([
+          rBold('Immigration Judge: '), r(judgeLabel),
+          rTab(),
+          rBold('Next Hearing: '), r(nextHearing)
+        ], [T_HALF]),
+        pEmpty(),
+        pEmpty(),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  ATTORNEY SIGNATURE BLOCK
+    //  From PDF p.2: right-aligned block starting at ~center
+    //  "Respectfully submitted," then blank, then line, then name+firm
+    // ══════════════════════════════════════════════════
+    function attyBlock() {
+      // PDF shows atty block indented to right half of page
+      // Using tab to ~5040 position for all lines
+      return [
+        pEmpty(), pEmpty(), pEmpty(), pEmpty(),
+        pLeft([rTab(), r('Respectfully submitted,')],  [T_ATTY]),
+        pEmpty(),
+        pEmpty(),
+        pLeft([rTab(), r('________________________')], [T_ATTY]),
+        pLeft([rTab(), r(' ' + attyName)],             [T_ATTY]),
+        pLeft([rTab(), r(firm)],                       [T_ATTY]),
+        pLeft([rTab(), r('6232 N. Pulaski Rd.,')],     [T_ATTY]),
+        pLeft([rTab(), r('Suite 300')],                [T_ATTY]),
+        pLeft([rTab(), r('Chicago, IL 60646')],        [T_ATTY]),
+        pLeft([rTab(), r(email)],                      [T_ATTY]),
+        pEmpty(),
+        pLeft([rTab(), r('Dated ' + svcStr)],          [T_ATTY]),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  CERTIFICATE OF SERVICE block
+    // ══════════════════════════════════════════════════
+    function cosBlock(docTitle) {
+      return [
+        pEmpty(), pEmpty(),
+        pCenter([rBold('CERTIFICATE OF SERVICE')]),
+        pEmpty(),
+        pJustify([r(
+          'I, ' + attyName + ' hereby certify that I served the Office of the ' +
+          'Principal Legal Advisor a true and correct copy of ' + docTitle +
+          ' to be ' + method + ' on ' + svcStr
+        )]),
+        pEmpty(), pEmpty(), pEmpty(), pEmpty(),
+        pLeft([r('__________________________')]),
+        pLeft([r(attyName + ', ' + attyTitle)]),
+        pLeft([r(firm)]),
+        pLeft([r('6232 North Pulaski Road, Suite 300')]),
+        pLeft([r('Chicago, Illinois 60646')]),
+        pLeft([r(phone)]),
+        pLeft([r(email)]),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  PAGE 1 — Cover page
+    //  Attorney line + NON-DETAINED | firm | addr
+    //  Court header | case caption | judge/hearing
+    //  NOF title
+    // ══════════════════════════════════════════════════
+    function coverPage(title1, title2) {
+      return [
+        // Attorney + NON-DETAINED on same line, right tab
+        pLeft([r(attyName + ', ' + attyTitle), rTab(), rBold(detained)], [T_RIGHT]),
+        pLeft([r(firm)]),
+        pLeft([r('6232 N. Pulaski Rd., Ste. 300')]),
+        pLeft([r('Chicago, IL 60646')]),
+        ...courtHeader(),
+        ...caseCaption(),
+        ...judgeHearingLine(),
+        pCenter([rBold(title1)]),
+        title2 ? pCenter([rBold(title2)]) : null,
+      ].filter(Boolean);
+    }
+
+    // ══════════════════════════════════════════════════
+    //  PAGE 2+ — Body page
+    //  Court header | case caption (no judge/hearing)
+    //  NOF title | body text
+    // ══════════════════════════════════════════════════
+    function bodyPageHeader(title1, title2) {
+      return [
+        pEmpty(), pEmpty(),
+        ...courtHeader(),
+        ...caseCaption(),
+        pCenter([rBold(title1)]),
+        title2 ? pLeft([r('  ' + title2)]) : null,  // PDF shows AND FOR... slightly indented
+        pEmpty(),
+      ].filter(Boolean);
+    }
+
+    // ══════════════════════════════════════════════════
+    //  COS PAGE — Court header | case caption | COS block
+    // ══════════════════════════════════════════════════
+    function cosPage(docTitle) {
+      return [
+        pEmpty(), pEmpty(),
+        ...courtHeader(),
+        ...caseCaption(),
+        ...cosBlock(docTitle),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  NOF I-589
+    // ══════════════════════════════════════════════════
+    function secI589() {
+      const title1 = "RESPONDENT'S SUBMISSION OF I-589, APPLICATION FOR ASYLUM";
+      const title2 = 'AND FOR WITHHOLDING OF REMOVAL';
+      const bodyText =
+        'Respondent, ' + rName + ' by and through ' + pronoun + ' attorney, ' +
+        attyName + ' of ' + firm + ', hereby submits Form I-589, Application for Asylum and for ' +
+        'Withholding of Removal, including Supporting Documents.  In support thereof, Respondent submits ' +
+        'the following.';
+      return [
+        ...coverPage(title1, title2),
+        pBreak(),
+        ...bodyPageHeader(title1, title2),
+        pBodyIndent([r(bodyText)]),
+        pEmpty(),
+        // "I." Roman numeral list item — matches PDF exactly
+        pLeft([r('   I.'), rTab(), r('One (1) original I-589, Application for Asylum and for Withholding of Removal.')],
+          [{ type: TabStopType.LEFT, position: 720 }]),
+        ...attyBlock(),
+        ...(d.cos ? [pBreak(), ...cosPage("Respondent\u2019s Application for Asylum and Withholding of Removal")] : []),
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  NOF Exhibits
+    // ══════════════════════════════════════════════════
+    function secExhibits() {
+      const title1 = "RESPONDENT'S SUBMISSION OF I-589 SUPPORTING DOCUMENTS";
+      const exLines = (d.exhibits||[]).map(ex =>
+        pLeft([r((ex.label||'') + ' \u2013 ' + (ex.desc||'')), rTab(), r(ex.page||'')], [T_RIGHT])
+      );
+      const exhibitDividers = (d.exhibits||[]).flatMap(ex => [
+        pBreak(), pEmpty(), pEmpty(),
+        pCenter([rBold('EXHIBIT ' + ((ex.label||'').replace('Group Exhibit ','').replace('Exhibit ','')))])
+      ]);
+      const bodyText =
+        'Respondent ' + rName + ' by and through ' + pronoun + ' attorney, ' +
+        attyName + ', of ' + firm + ', hereby submits I-589 supporting documents. ' +
+        'In support thereof, Respondent submits the following in tabulated order:';
+      return [
+        ...coverPage(title1, null),
+        pBreak(),
+        ...bodyPageHeader(title1, null),
+        pBodyIndent([r(bodyText)]),
+        pEmpty(),
+        pLeft([r('   \u2022'), rTab(), r('Supporting Documents:')], [{ type: TabStopType.LEFT, position: 720 }]),
+        pEmpty(),
+        pCenter([rBold('SUPPORTING DOCUMENTS')]),
+        pEmpty(),
+        ...exLines,
+        pEmpty(),
+        pJustify([r('Additional supporting documents will be submitted at a future Immigration Court hearing date.')]),
+        ...attyBlock(),
+        ...(d.cos ? [pBreak(), ...cosPage("Respondent\u2019s Exhibits")] : []),
+        ...exhibitDividers,
+      ];
+    }
+
+    // ══════════════════════════════════════════════════
+    //  NOF Fee Receipt
+    // ══════════════════════════════════════════════════
+    function secFeeReceipt() {
+      const title1 = "RESPONDENT\u2019S I-589 FEE RECEIPT";
+      const feePg  = d.feePg || '__';
+      const bodyText =
+        'Respondent, ' + rName + ' by and through ' + pronoun + ' attorneys ' + firm +
+        ', hereby submits Proof of I-589 Fee Payment Receipt. ' +
+        'In support thereof, Respondent submits the following in tabulated order:';
+      return [
+        ...coverPage(title1, null),
+        pBreak(),
+        ...bodyPageHeader(title1, null),
+        pBodyIndent([r(bodyText)]),
+        pEmpty(),
+        pLeft([r('   \u2022'), rTab(), r('Supporting Documents;')], [{ type: TabStopType.LEFT, position: 720 }]),
+        pEmpty(),
+        pLeft([rTab(), rBold('PAGE NO')], [T_RIGHT]),
+        pEmpty(),
+        pLeft([rBold('Exhibit A \u2013 Documents in Support')]),
+        pLeft([r('Copy of Respondent\u2019s I-589 Fee Payment Receipt'), rTab(), r(feePg)], [T_RIGHT]),
+        ...attyBlock(),
+        ...(d.cos ? [pBreak(), ...cosPage("Respondent\u2019s I-589 Fee Payment Receipt")] : []),
+        pBreak(), pEmpty(), pEmpty(),
+        pCenter([rBold('EXHIBIT A')]),
+      ];
+    }
+
+    // ── Build document ──
+    // ── Download one file per selected document ──
+    const docsToExport = [
+      { key: 'i589', label: 'NOF_I-589',     children: secI589() },
+      { key: 'exh',  label: 'NOF_EXH',       children: secExhibits() },
+      { key: 'fee',  label: 'NOF_FEE',       children: secFeeReceipt() },
+    ].filter(x => {
+      const cb = document.getElementById('dl_' + x.key);
+      // Fall back to selectedDocs if checkbox not rendered yet
+      return cb ? cb.checked : selectedDocs[x.key];
+    });
+
+    if (!docsToExport.length) throw new Error('Selecciona al menos un documento.');
+
+    const baseName = (rLast||'NOF').replace(/,/g,'').trim() + '_' + rFirst.trim() + '_' + todayStr();
+
+    async function makeBlob(children) {
+      const doc = new Document({ sections: [{ properties: { page: PAGE }, children }] });
+      if (typeof Packer.toBlob === 'function') return await Packer.toBlob(doc);
+      const b64   = await Packer.toBase64String(doc);
+      const bytes = atob(b64);
+      const arr   = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      return new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    }
+
+    function triggerDownload(blob, filename) {
+      return new Promise(resolve => {
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href     = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => { URL.revokeObjectURL(url); resolve(); }, 800);
+      });
+    }
+
+    // Download sequentially with a small delay so browser doesn't block them
+    for (const doc of docsToExport) {
+      const blob = await makeBlob(doc.children);
+      await triggerDownload(blob, doc.label + '_' + baseName + '.docx');
+    }
+
+  } catch(e) {
+    alert('Error al exportar:\n' + e.message);
+    console.error('exportDOCX:', e);
+  }
+  btn.textContent = '⬇ Download DOCX Packet';
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ACIS / ECAS SCREENSHOT EXTRACTOR
+// ═══════════════════════════════════════════════════════
+let acisExtracted = null;
+
+// ── Ctrl+V global listener ──
+document.addEventListener('paste', function(e) {
+  if (document.getElementById('step1').classList.contains('hidden')) return;
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const zone = document.getElementById('acis-upload-zone');
+      zone.style.borderColor = 'var(--ink)';
+      setTimeout(() => zone.style.borderColor = 'var(--paper3)', 800);
+      handleAcisFile(item.getAsFile());
+      return;
+    }
+  }
+});
+
+function handleAcisDrop(e) {
+  e.preventDefault();
+  document.getElementById('acis-upload-zone').style.borderColor = 'var(--paper3)';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleAcisFile(file);
+}
+
+function handleAcisPaste(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      handleAcisFile(item.getAsFile());
+      return;
+    }
+  }
+}
+
+function handleAcisFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
+    document.getElementById('acis-img').src = dataUrl;
+    document.getElementById('acis-preview').style.display = 'block';
+    document.getElementById('acis-extracted').style.display = 'none';
+    document.getElementById('acis-status').innerHTML =
+      '<span style="color:var(--ink3);">⏳ Leyendo texto del screenshot...</span>';
+    runOCR(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── OCR with Tesseract.js (100% local, no internet needed) ──
+async function runOCR(dataUrl) {
+  try {
+    // Check if Tesseract loaded
+    if (typeof Tesseract === 'undefined') {
+      document.getElementById('acis-status').innerHTML =
+        '<span style="color:#c0392b;">❌ Tesseract no cargó. Necesitas internet la primera vez para cargar la librería OCR.</span>';
+      return;
+    }
+
+    document.getElementById('acis-status').innerHTML =
+      '<span style="color:var(--ink3);">⏳ Procesando imagen... <span id="ocr-pct">0%</span></span>';
+
+    const result = await Tesseract.recognize(dataUrl, 'eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round((m.progress || 0) * 100);
+          const el = document.getElementById('ocr-pct');
+          if (el) el.textContent = pct + '%';
+        }
+      }
+    });
+
+    const text = result.data.text;
+    console.log('OCR raw text:', text);
+    const parsed = parseAcisText(text);
+    acisExtracted = parsed;
+    showAcisFields(parsed);
+
+  } catch(err) {
+    document.getElementById('acis-status').innerHTML =
+      '<span style="color:#c0392b;">❌ Error OCR: ' + err.message + '</span>';
+    console.error('OCR error:', err);
+  }
+}
+
+// ── Parse OCR text to extract ACIS fields ──
+// ── Address → Court lookup table (from EOIR official addresses) ──
+// Key = keyword found in the address block on ACIS screen
+const COURT_ADDRESS_MAP = [
+  { keywords: ['FORT SNELLING', 'BLOOMINGTON, MN', '55111'],         courtKey: 'FORT SNELLING IMMIGRATION COURT' },
+  { keywords: ['ORLANDO', 'MAITLAND', 'FL 32751', 'FL 32803'],       courtKey: 'ORLANDO IMMIGRATION COURT' },
+  { keywords: ['MIAMI', 'NW 2ND', 'FL 33128', 'KROME'],              courtKey: 'MIAMI IMMIGRATION COURT' },
+  { keywords: ['CHICAGO', 'CHICAGO, IL', '60604', '60661'],          courtKey: 'CHICAGO IMMIGRATION COURT' },
+  { keywords: ['NEW YORK', 'BROADWAY', 'VARICK', 'FEDERAL PLAZA'],   courtKey: 'NEW YORK IMMIGRATION COURT' },
+  { keywords: ['LOS ANGELES', 'N. LOS ANGELES', 'VAN NUYS', 'WEST L'], courtKey: 'LOS ANGELES IMMIGRATION COURT' },
+  { keywords: ['HOUSTON', 'HOUSTON, TX', '77002', '77208'],          courtKey: 'HOUSTON IMMIGRATION COURT' },
+  { keywords: ['DALLAS', 'DALLAS, TX', '75242'],                     courtKey: 'DALLAS IMMIGRATION COURT' },
+  { keywords: ['SAN ANTONIO', 'SAN ANTONIO, TX'],                    courtKey: 'SAN ANTONIO IMMIGRATION COURT' },
+  { keywords: ['EL PASO', 'EL PASO, TX'],                            courtKey: 'EL PASO IMMIGRATION COURT' },
+  { keywords: ['ATLANTA', 'TED TURNER', 'PEACHTREE', 'ATLANTA, GA'], courtKey: 'ATLANTA IMMIGRATION COURT' },
+  { keywords: ['BOSTON', 'BOSTON, MA', 'CHELMSFORD'],                courtKey: 'BOSTON IMMIGRATION COURT' },
+  { keywords: ['DENVER', 'DENVER, CO', '80204'],                     courtKey: 'DENVER IMMIGRATION COURT' },
+  { keywords: ['AURORA', 'AURORA, CO'],                              courtKey: 'AURORA IMMIGRATION COURT' },
+  { keywords: ['NEWARK', 'NEWARK, NJ', 'ELIZABETH, NJ'],             courtKey: 'NEWARK IMMIGRATION COURT' },
+  { keywords: ['BALTIMORE', 'BALTIMORE, MD'],                        courtKey: 'BALTIMORE IMMIGRATION COURT' },
+  { keywords: ['HYATTSVILLE', 'HYATTSVILLE, MD'],                    courtKey: 'HYATTSVILLE IMMIGRATION COURT' },
+  { keywords: ['DETROIT', 'DETROIT, MI'],                            courtKey: 'DETROIT IMMIGRATION COURT' },
+  { keywords: ['SEATTLE', 'SEATTLE, WA'],                            courtKey: 'SEATTLE IMMIGRATION COURT' },
+  { keywords: ['TACOMA', 'TACOMA, WA'],                              courtKey: 'TACOMA IMMIGRATION COURT' },
+  { keywords: ['PORTLAND', 'PORTLAND, OR'],                          courtKey: 'PORTLAND IMMIGRATION COURT' },
+  { keywords: ['CHARLOTTE', 'CHARLOTTE, NC'],                        courtKey: 'CHARLOTTE IMMIGRATION COURT' },
+  { keywords: ['MEMPHIS', 'MEMPHIS, TN'],                            courtKey: 'MEMPHIS IMMIGRATION COURT' },
+  { keywords: ['PHILADELPHIA', 'PHILADELPHIA, PA'],                  courtKey: 'PHILADELPHIA IMMIGRATION COURT' },
+  { keywords: ['PHOENIX', 'PHOENIX, AZ'],                            courtKey: 'PHOENIX IMMIGRATION COURT' },
+  { keywords: ['TUCSON', 'TUCSON, AZ'],                              courtKey: 'TUCSON IMMIGRATION COURT' },
+  { keywords: ['SAN DIEGO', 'SAN DIEGO, CA'],                        courtKey: 'SAN DIEGO IMMIGRATION COURT' },
+  { keywords: ['SAN FRANCISCO', 'SAN FRANCISCO, CA'],                courtKey: 'SAN FRANCISCO IMMIGRATION COURT' },
+  { keywords: ['SACRAMENTO', 'SACRAMENTO, CA'],                      courtKey: 'SACRAMENTO IMMIGRATION COURT' },
+  { keywords: ['SANTA ANA', 'SANTA ANA, CA'],                        courtKey: 'SANTA ANA IMMIGRATION COURT' },
+  { keywords: ['LAS VEGAS', 'LAS VEGAS, NV'],                        courtKey: 'LAS VEGAS IMMIGRATION COURT' },
+  { keywords: ['KANSAS CITY', 'KANSAS CITY, MO'],                    courtKey: 'KANSAS CITY IMMIGRATION COURT' },
+  { keywords: ['OMAHA', 'OMAHA, NE'],                                courtKey: 'OMAHA IMMIGRATION COURT' },
+  { keywords: ['INDIANAPOLIS', 'INDIANAPOLIS, IN'],                  courtKey: 'INDIANAPOLIS IMMIGRATION COURT' },
+  { keywords: ['HARTFORD', 'HARTFORD, CT'],                          courtKey: 'HARTFORD IMMIGRATION COURT' },
+  { keywords: ['HONOLULU', 'HONOLULU, HI'],                          courtKey: 'HONOLULU IMMIGRATION COURT' },
+  { keywords: ['NEW ORLEANS', 'NEW ORLEANS, LA'],                    courtKey: 'NEW ORLEANS IMMIGRATION COURT' },
+  { keywords: ['BATON ROUGE', 'BATON ROUGE, LA'],                    courtKey: 'BATON ROUGE IMMIGRATION COURT' },
+  { keywords: ['LASALLE', 'JENA, LA', 'OAKDALE'],                    courtKey: 'LASALLE IMMIGRATION COURT' },
+  { keywords: ['GUAYNABO', 'PUERTO RICO', 'PR 00'],                  courtKey: 'GUAYNABO IMMIGRATION COURT' },
+  { keywords: ['ELOY', 'ELOY, AZ'],                                  courtKey: 'ELOY IMMIGRATION COURT' },
+  { keywords: ['FLORENCE', 'FLORENCE, AZ'],                          courtKey: 'FLORENCE IMMIGRATION COURT' },
+  { keywords: ['ADELANTO', 'ADELANTO, CA'],                          courtKey: 'ADELANTO IMMIGRATION COURT' },
+  { keywords: ['IMPERIAL', 'EL CENTRO', 'EL CENTRO, CA'],            courtKey: 'IMPERIAL IMMIGRATION COURT' },
+  { keywords: ['OTAY MESA', 'OTAY MESA, CA'],                        courtKey: 'OTAY MESA IMMIGRATION COURT' },
+  { keywords: ['STEWART', 'LUMPKIN', 'LUMPKIN, GA'],                 courtKey: 'STEWART IMMIGRATION COURT' },
+  { keywords: ['PEARSALL', 'PEARSALL, TX'],                          courtKey: 'PEARSALL IMMIGRATION COURT' },
+  { keywords: ['PORT ISABEL', 'LOS FRESNOS'],                        courtKey: 'PORT ISABEL IMMIGRATION COURT' },
+  { keywords: ['LAREDO', 'LAREDO, TX'],                              courtKey: 'LAREDO IMMIGRATION COURT' },
+  { keywords: ['CONROE', 'CONROE, TX'],                              courtKey: 'CONROE IMMIGRATION COURT' },
+  { keywords: ['OTERO', 'CHAPARRAL'],                                courtKey: 'OTERO IMMIGRATION COURT' },
+  { keywords: ['SALT LAKE', 'SALT LAKE CITY'],                       courtKey: 'SALT LAKE CITY IMMIGRATION COURT' },
+  { keywords: ['ANNANDALE', 'ANNANDALE, VA'],                        courtKey: 'ANNANDALE IMMIGRATION COURT' },
+  { keywords: ['ARLINGTON', 'ARLINGTON, VA'],                        courtKey: 'ARLINGTON IMMIGRATION COURT' },
+  { keywords: ['FARMVILLE', 'FARMVILLE, VA'],                        courtKey: 'FARMVILLE IMMIGRATION COURT' },
+];
+
+function matchCourtFromText(text) {
+  const upper = text.toUpperCase();
+  for (const entry of COURT_ADDRESS_MAP) {
+    for (const kw of entry.keywords) {
+      if (upper.includes(kw.toUpperCase())) return entry.courtKey;
+    }
+  }
+  return null;
+}
+
+function parseAcisText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // ── A-Number ──
+  let aNumber = null;
+  const aMatch = text.match(/A[#\-]?\s*(\d{3}[\s\-]\d{3}[\s\-]\d{3})/i)
+               || text.match(/(\d{3}[\-\s]\d{3}[\-\s]\d{3})/);
+  if (aMatch) aNumber = aMatch[1].replace(/\s/g,'-').replace(/--/g,'-');
+
+  // ── Respondent name ──
+  // Strategy 1: "Alien Name: LAST, FIRST"
+  let respondentLast = null, respondentFirst = null;
+  const alienLine = lines.find(l => /alien\s*name/i.test(l));
+  if (alienLine) {
+    // Could be same line "Alien Name: BERRIER ABREU, YOADNIE"
+    // or next line has the name
+    const sameLineMatch = alienLine.match(/alien\s*name[:\s]+([A-Z][A-Z\s]+),\s*([A-Z][A-Za-z]+)/i);
+    if (sameLineMatch) {
+      respondentLast  = sameLineMatch[1].trim().toUpperCase();
+      respondentFirst = sameLineMatch[2].trim();
+    } else {
+      // Check next line
+      const idx = lines.indexOf(alienLine);
+      const nextLine = lines[idx + 1] || '';
+      const nextMatch = nextLine.match(/^([A-Z][A-Z\s]+),\s*([A-Z][A-Za-z]+)$/);
+      if (nextMatch) {
+        respondentLast  = nextMatch[1].trim().toUpperCase();
+        respondentFirst = nextMatch[2].trim();
+      }
+    }
+  }
+  // Strategy 2: "A-Number: 244-420-298, BERRIER ABREU, YOADNIE" at top header
+  if (!respondentLast) {
+    const headerMatch = text.match(/\d{3}[-\s]\d{3}[-\s]\d{3}[,\s]+([A-Z][A-Z\s]+),\s*([A-Z][A-Za-z]+)/);
+    if (headerMatch) {
+      respondentLast  = headerMatch[1].trim().toUpperCase();
+      respondentFirst = headerMatch[2].trim();
+    }
+  }
+  // Strategy 3: standalone "LASTNAME, FIRSTNAME" line near top
+  if (!respondentLast) {
+    for (const line of lines.slice(0, 8)) {
+      const m = line.match(/^([A-Z]{2,}(?:\s+[A-Z]{2,})*),\s+([A-Z][A-Za-z]+)$/);
+      if (m && !/(court|immigration|removal|case|federal|drive|suite)/i.test(m[0])) {
+        respondentLast  = m[1].trim();
+        respondentFirst = m[2].trim();
+        break;
+      }
+    }
+  }
+
+  // ── Court ── 
+  // Primary: use address lookup table (ACIS shows address not court name)
+  let courtName = matchCourtFromText(text);
+  // Fallback: if "IMMIGRATION COURT" appears explicitly in text
+  if (!courtName) {
+    const courtMatch = text.toUpperCase().match(/([\w\s]+IMMIGRATION COURT)/);
+    if (courtMatch) courtName = courtMatch[1].trim();
+  }
+
+  // ── Judge ──
+  let judge = null;
+  // Look for "IJ Decision" line to avoid false positives, find the hearing judge line
+  const ijLine = lines.find(l =>
+    /immigration\s*court/i.test(l) === false &&
+    /ij\s|immigration\s*judge/i.test(l) &&
+    !/decision/i.test(l)
+  );
+  if (ijLine) {
+    const jm = ijLine.match(/(?:ij|immigration\s*judge)[:\s]+([A-Za-z,\s\.]+)/i);
+    if (jm) {
+      const name = jm[1].trim().replace(/\s+/g,' ');
+      if (name.length > 2 && !/^(n\/a|--|na|date)/i.test(name)) judge = name;
+    }
+  }
+
+  // ── Next Hearing ──
+  let nextHearing = null;
+  const hearingLine = lines.find(l => /next\s*(case\s*)?hearing/i.test(l));
+  if (hearingLine) {
+    const dm = hearingLine.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+    if (dm) nextHearing = dm[1];
+    // "-- NA --" means no hearing scheduled
+  }
+
+  // ── Case status ──
+  let caseStatus = null;
+  const statusLine = lines.find(l => /case\s*(pending|closed|complete)/i.test(l)
+                                  || /this\s*case\s*is/i.test(l));
+  if (statusLine) {
+    const sm = statusLine.match(/(case\s+\w+|this\s+case\s+is\s+\w+)/i);
+    if (sm) caseStatus = sm[1].trim();
+  }
+
+  console.log('Parsed ACIS:', { aNumber, respondentLast, respondentFirst, courtName, nextHearing, judge });
+  return { aNumber, respondentLast, respondentFirst, courtName, nextHearing, judge, caseStatus };
+}
+
+
+function showAcisFields(data) {
+  const fields = [
+    ['A-Number',     data.aNumber],
+    ['Apellido',     data.respondentLast],
+    ['Nombre',       data.respondentFirst],
+    ['Corte',        data.courtName],
+    ['Ciudad',       data.courtCity],
+    ['Next Hearing', data.nextHearing],
+    ['Juez',         data.judge],
+    ['Status',       data.caseStatus],
+  ].filter(([, v]) => v && v !== 'null');
+
+  if (!fields.length) {
+    document.getElementById('acis-status').innerHTML =
+      '<span style="color:#c0392b;">⚠ No se encontraron datos. Asegúrate de que el screenshot sea claro y muestre el ACIS/ECAS completo.</span>';
+    return;
+  }
+
+  document.getElementById('acis-status').innerHTML =
+    '<span style="color:var(--green);font-weight:500;">✓ Datos extraídos</span>';
+  document.getElementById('acis-fields').innerHTML =
+    fields.map(([k, v]) => `<div><b>${k}:</b> ${v}</div>`).join('');
+  document.getElementById('acis-extracted').style.display = 'block';
+}
+
+function applyAcisData() {
+  if (!acisExtracted) return;
+  const d = acisExtracted;
+
+  if (d.aNumber)        document.getElementById('r_anumber').value = d.aNumber;
+  if (d.respondentLast) { document.getElementById('r_last').value = formatLastName(d.respondentLast); updateTitle(); }
+  if (d.respondentFirst){ document.getElementById('r_first').value = formatFirstName(d.respondentFirst); updateTitle(); }
+
+  // ── Match court dropdown using courtName from lookup table ──
+  if (d.courtName) {
+    const sel  = document.getElementById('r_court');
+    const key  = d.courtName.toUpperCase().replace(' IMMIGRATION COURT','').trim();
+    let bestOpt = null;
+
+    // Exact match on line1 of court value (e.g. "FORT SNELLING IMMIGRATION COURT|...")
+    for (const opt of sel.options) {
+      if (!opt.value) continue;
+      const v = opt.value.toUpperCase();
+      if (v.startsWith(d.courtName.toUpperCase())) { bestOpt = opt; break; }
+    }
+    // Partial keyword match
+    if (!bestOpt) {
+      for (const opt of sel.options) {
+        if (!opt.value) continue;
+        if (opt.value.toUpperCase().includes(key)) { bestOpt = opt; break; }
+      }
+    }
+    if (bestOpt) {
+      sel.value = bestOpt.value;
+      populateJudges();
+    }
+  }
+
+  // ── Match judge ──
+  if (d.judge && d.judge !== 'null') {
+    const jSel = document.getElementById('r_judge_select');
+    const jKey = d.judge.toUpperCase().split(',')[0].trim();
+    let bestJ = null;
+    for (const opt of jSel.options) {
+      if (opt.value && opt.value.toUpperCase().includes(jKey)) { bestJ = opt; break; }
+    }
+    if (bestJ) { jSel.value = bestJ.value; onJudgeSelect(bestJ.value); }
+    else { document.getElementById('r_judge').value = d.judge; }
+  }
+
+  // ── Hearing date ──
+  if (d.nextHearing && d.nextHearing !== 'null') {
+    const parsed = new Date(d.nextHearing);
+    if (!isNaN(parsed)) {
+      document.getElementById('r_hearing_date').value = parsed.toISOString().split('T')[0];
+      document.getElementById('tbs_date').checked = false;
+      document.getElementById('r_hearing_date').disabled = false;
+      document.getElementById('r_hearing_date').style.opacity = '1';
+    }
+  }
+
+  document.getElementById('acis-status').innerHTML =
+    '<span style="color:var(--green);font-weight:500;">✓ Formulario llenado automáticamente</span>';
+  document.getElementById('r_last').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function clearAcis() {
+  acisExtracted = null;
+  document.getElementById('acis-file-input').value = '';
+  document.getElementById('acis-preview').style.display = 'none';
+  document.getElementById('acis-extracted').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  EOIR COURT & JUDGE DATABASE (source: justice.gov)
+// ═══════════════════════════════════════════════════════
+const EOIR_COURTS = [
+  // ── ARIZONA ──
+  { state:'Arizona', name:'Eloy Immigration Court', line1:'ELOY IMMIGRATION COURT', line2:'ELOY, ARIZONA',
+    judges:['Irene C. Feldman (ICF)','Nicolas Orechwa (NSO)','William Mabry III (WMM)','Michael Schnitzer (MLS)'] },
+  { state:'Arizona', name:'Florence Immigration Court', line1:'FLORENCE IMMIGRATION COURT', line2:'FLORENCE, ARIZONA',
+    judges:['Irene C. Feldman (ICF)','Natalie Huddleston (NHT)','Victoria Levin (VAL)','Bruce Taylor (BAT)'] },
+  { state:'Arizona', name:'Phoenix Immigration Court', line1:'PHOENIX IMMIGRATION COURT', line2:'PHOENIX, ARIZONA',
+    judges:['Irene C. Feldman (ICF)','John Cortes (JOC)','Elizabeth Cottor (EAC)','Jennifer Gaz (JIG)','Marni Guerrero (MGO)','Paul Habich (PMH)','Melissa Karlen (MBK)','Benjamin S. Kuipers (BEK)','Munish Sharda (MS1)','Xinzhe Zhang (XZZ)'] },
+  { state:'Arizona', name:'Tucson Immigration Court', line1:'TUCSON IMMIGRATION COURT', line2:'TUCSON, ARIZONA',
+    judges:['Irene C. Feldman (ICF)','Kathryn DeAngelis (KLD)','Michael W. Lloyd (MLL)','Gilda Terrazas (GMT)'] },
+  // ── CALIFORNIA ──
+  { state:'California', name:'Adelanto Immigration Court', line1:'ADELANTO IMMIGRATION COURT', line2:'ADELANTO, CALIFORNIA',
+    judges:['Jonathan W. Hitesman (JH1)','Patrick Barrett (PDB)','Bryan DePowell (BDP)','Ravit Halperin (RRH)','Katie Mullins (KGM)','Curtis White (CGW)'] },
+  { state:'California', name:'Concord Immigration Court', line1:'CONCORD IMMIGRATION COURT', line2:'CONCORD, CALIFORNIA',
+    judges:['Julie Nelson (JLN)','John F. Jakubowski (JFJ)','Marlem Nava (MWN)','Justin M. Price (JMP)','Shadee M. Star (SMS)','Jacob J. Stender (JJS)'] },
+  { state:'California', name:'Imperial Immigration Court', line1:'IMPERIAL IMMIGRATION COURT', line2:'IMPERIAL, CALIFORNIA',
+    judges:['Anne Kristina Perry (AKP)','Jeffrey Munoz (JVM)','Stuart J. Zander (SJZ)'] },
+  { state:'California', name:'Los Angeles - N. Los Angeles Street', line1:'LOS ANGELES IMMIGRATION COURT', line2:'LOS ANGELES, CALIFORNIA',
+    judges:['Kevin Riley (KWR)','Matthew Chan (MWC)','Timothy Everett (TRE)','Andrea Hong (AHO)','Jaime Jasso (JJO)','Nancy Miller (NMR)','Rachel Ruane (RAR)','Andrea Siebert (ANS)','Taiyyeba S. Skomra (TSS)'] },
+  { state:'California', name:'Los Angeles - West Los Angeles', line1:'LOS ANGELES IMMIGRATION COURT', line2:'LOS ANGELES, CALIFORNIA',
+    judges:['Rodin Rooyani','Joyce Bakke Varzandeh (JBV)','Gabriel Bradley (GAB)','Diana L. Callaghan (DAC)','Amit Chugh (AC2)','Audra Behne (ABE)','Jankana Desai (JD1)','John T. Driscoll (JOD)','Carlos Juelle (CRJ)','Daniel Malvin (DHM)','Kristopher McDonald (KRM)','Yvan Murad (YEM)','Robert C. O\'Neil (RCO)','Curtis Pierce (CFP)','Anita Simons (ALS)','Christine Stancill (CES)','Veronica Villegas (VSV)'] },
+  { state:'California', name:'Los Angeles - Van Nuys Blvd', line1:'LOS ANGELES IMMIGRATION COURT', line2:'VAN NUYS, CALIFORNIA',
+    judges:['Kevin Riley (KWR)','Roberto Amaya (ROA)','Jonathan M. Brent (JTB)','Hye Chon (HYC)','Arlene E. Dorfman (ARD)','Carlos Maury (CEM)','Steven Marcus (SNM)','Paul Medved (PNM)','Jeannette Park (JPK)','Sandra Santos-Garcia (SJS)','Joseph Weiner (JAW)'] },
+  { state:'California', name:'Otay Mesa Immigration Court', line1:'OTAY MESA IMMIGRATION COURT', line2:'SAN DIEGO, CALIFORNIA',
+    judges:['Catherine Halliday-Roberts (CHR)','Eugene Robinson (EHR)','Mark Sameit (MST)'] },
+  { state:'California', name:'Sacramento Immigration Court', line1:'SACRAMENTO IMMIGRATION COURT', line2:'SACRAMENTO, CALIFORNIA',
+    judges:['Jonathan W. Hitesman (JH1)','Vikram Badrinath (VKB)','William David Neumeister (WDN)','Susan Phan (SPN)'] },
+  { state:'California', name:'San Diego Immigration Court', line1:'SAN DIEGO IMMIGRATION COURT', line2:'SAN DIEGO, CALIFORNIA',
+    judges:['Catherine Halliday-Roberts (CHR)','Amelia Anderson (AAN)','Olga Attia (OEA)','Samantha Begovich (SAB)','Guy Grande (GGG)','Leah A. O\'Brien (LON)','Jose Penalosa (JPJ)','Lindsay W. Pepi (LWP)','Scott Simpson (SS2)'] },
+  { state:'California', name:'San Francisco Immigration Court', line1:'SAN FRANCISCO IMMIGRATION COURT', line2:'SAN FRANCISCO, CALIFORNIA',
+    judges:['Julie Nelson (JLN)','Steven Kirchner (SMK)','Frank Seminerio (FAS)'] },
+  { state:'California', name:'Santa Ana Immigration Court', line1:'SANTA ANA IMMIGRATION COURT', line2:'SANTA ANA, CALIFORNIA',
+    judges:['Jason Waterloo (JWO)','Darin W. Flagg (DNF)','Andrew Fishkin (AFN)','Leon Francis (LJF)','Iman Ghasri (ING)','Howard Hom (HH)','Jonathan Huang (JOH)','Lily Hsu (LCH)','Wilbur Lee (WRL)','Heather Libeu (HRL)','Anita McFadden (AMF)','Joyce Noche (JEN)','Aggie Norregard (AEN)','Kristin Piepmeier (PIE)','Jerome Rothschild Jr. (JER)','Gregory Simmons (GSS)','Terese Tadros-Ibarra (TTI)','Nathaniel B. Walker (NBW)'] },
+  // ── COLORADO ──
+  { state:'Colorado', name:'Aurora Immigration Court', line1:'AURORA IMMIGRATION COURT', line2:'AURORA, COLORADO',
+    judges:['Irene C. Feldman (ICF)','Meghan C. Buhl-Madsen (MBM)','Bobbie C. Masters (BCM)','Robyn Ross (ROR)'] },
+  { state:'Colorado', name:'Denver Immigration Court', line1:'DENVER IMMIGRATION COURT', line2:'DENVER, COLORADO',
+    judges:['Irene C. Feldman (ICF)','Brea Burgie (BAB)','Nina M. Carbone (NMC)','Melanie Corrin (MKC)','Ivan Gardzelewski (IEG)','Alison Kane (ARK)','Jack D. Patten III (JPA)','Jeremy Sibert (JES)','Jennifer C. Whitko (JCW)','Tyler Wood (TRW)'] },
+  // ── CONNECTICUT ──
+  { state:'Connecticut', name:'Hartford Immigration Court', line1:'HARTFORD IMMIGRATION COURT', line2:'HARTFORD, CONNECTICUT',
+    judges:['Angela Munson (AMS)','Justin Bennett (JUB)','Daniel A. Morris (DM)','Andrew J. Slitt (AST)'] },
+  // ── FLORIDA ──
+  { state:'Florida', name:'Miami Immigration Court', line1:'MIAMI IMMIGRATION COURT', line2:'MIAMI, FLORIDA',
+    judges:['Elisa M. Sukkar (EMS)','Scott Alexander (SGA)','Michelle Araneta (MCA)','Thomas Ayze (TSA)','Javier Balasquide (JEB)','Abraham Burgess (ALB)','Daniel Dowell (JDD)','Madeline Garcia (MGM)','Lakshmi Herman (LIH)','Dalin Holyoak (DRH)','C. Morgan Kim (CIK)','Denise Marks Lane (DML)','Anthony Maingot (AEM)','Stephen Mander (SEM)','Lourdes Martinez-Esquivel (LME)','Rene Mateo (RDM)','Marsha Nettles (MKN)','Monica Neumann (MNN)','Irene Recio (IRO)','Christine Lluis Reis (CRE)','Jose Rivera-Ortiz (JRA)','Lourdes Rodriguez de Jongh (LRJ)','Rico Sogocio (RSO)','Maria T. Ubarri (MAU)','Michael Walleisa (MWA)'] },
+  { state:'Florida', name:'Miami Krome (Detained) Immigration Court', line1:'MIAMI IMMIGRATION COURT', line2:'MIAMI, FLORIDA',
+    judges:['Elisa M. Sukkar (EMS)','Romy Lerner (RYL)','Liviu Lungu (LIL)','Christina Martyak (CAM)','Jorge Pereira (JEP)','Stuart Siegel (SAS)'] },
+  { state:'Florida', name:'Orlando Immigration Court', line1:'ORLANDO IMMIGRATION COURT', line2:'ORLANDO, FLORIDA',
+    judges:['Ayodele A. Gansallo','Anna Adams (ANA)','Yon Alberdi (YKA)','Thomas C. Allmond (TAD)','Brian Burke (BB2)','Jeffry S. Brady (JBA)','Richard B. Cato (RDC)','Jeffrey Frederick (JSF)','Joshua Hawkes (JHH)','Richard Jamadar (RJ1)','Rodger Harris (RHC)','James A. Klinedinst (JSK)','Matthew A. Kozyra (MKA)','Elizabeth Lang (EGL)','Alec Niziolek (AJN)','Harold Moroz (HRM)','Nicole Mouakar (NIM)','Jennifer Page-Lozano (JPL)','Raphael Rojas (RPR)','Benjamin D. Rosen (BNR)','Kevin Stanley (KNS)','Julia Diaz-Rex (JDR)','Pedro Espinal (PJE)','Elvin Talavera-Peraza (ETP)'] },
+  // ── GEORGIA ──
+  { state:'Georgia', name:'Atlanta - Ted Turner Drive', line1:'ATLANTA IMMIGRATION COURT', line2:'ATLANTA, GEORGIA',
+    judges:['Joy Lampley-Fortson (CLF)','James Crofts (JCR)','Sheila Gallow (SGE)','Andrew Hewitt (AWH)','Kyle Pearson (KYP)','Kelley Sydnor (KFL)'] },
+  { state:'Georgia', name:'Atlanta - W. Peachtree Street', line1:'ATLANTA IMMIGRATION COURT', line2:'ATLANTA, GEORGIA',
+    judges:['Philip P. Taylor','Joy Lampley-Fortson (CLF)','Jennifer R. Bell (JRB)','Ghunise L. Coaxum (GEC)','Blake Doughty (BDG)','Ryan Fisher (RNF)','Amy F. Haer (AFH)','Melissa L. Isaak (MLL)','Njeri Maldonado (NBM)','Suzette Smikle (SES)','Kevin D. Stroberg (KES)','Winfield Murray (WWM)'] },
+  { state:'Georgia', name:'Stewart Immigration Court', line1:'STEWART IMMIGRATION COURT', line2:'STEWART, GEORGIA',
+    judges:['Joy Lampley-Fortson (CLF)','Bianca Brown (BHB)','Steven Fuller (SBF)','Jerrica Harness (JEH)'] },
+  // ── HAWAII ──
+  { state:'Hawaii', name:'Honolulu Immigration Court', line1:'HONOLULU IMMIGRATION COURT', line2:'HONOLULU, HAWAII',
+    judges:['Jason Waterloo (JWO)','Robin Feder (REF)','Clarence Wagner (CMW)'] },
+  // ── ILLINOIS ──
+  { state:'Illinois', name:'Chicago Immigration Court', line1:'CHICAGO IMMIGRATION COURT', line2:'CHICAGO, ILLINOIS',
+    judges:['Craig DeFoe (CDE)','Dillon J. Ambrose (DJA)','Matthew C. Beese (MCB)','Elizabeth Crites (EHC)','Brendan Curran (BCC)','Peter A. Kim (PAK)','Michael Klosowsky (MLK)','Joshua Luskin (JAL)','Jacob Marshall (JBM)','Patrick McKenna (PKM)','Ana Mencini (AAM)','Samia Naseem (SNA)','Gina Reynolds (GAR)','Eva Saltzman (ESS)','Marc Stahl (MCS)','Elizabeth Treacy (ELT)','Michelle Venci (MEV)','Akash B. Vyas (AHV)'] },
+  // ── INDIANA ──
+  { state:'Indiana', name:'Indianapolis Immigration Court', line1:'INDIANAPOLIS IMMIGRATION COURT', line2:'INDIANAPOLIS, INDIANA',
+    judges:['Robert P. Driscoll (RTD)','Scott Bratton (STB)','Valerie Burch (VAB)','Daniel Conklin (DBC)','James Holden (JMH)','Jane Miller (JCM)','Scott Thomsen (STT)'] },
+  // ── LOUISIANA ──
+  { state:'Louisiana', name:'Baton Rouge Immigration Court', line1:'BATON ROUGE IMMIGRATION COURT', line2:'BATON ROUGE, LOUISIANA',
+    judges:['Sherron Ashworth (SAH)','Jaclyn C. Chapman','Carey Holliday (CRH)','Scott Laragy (WSL)','Patrick E. Moore (PEM)','Cassie Thogersen (CAT)','Romaine White (REW)'] },
+  { state:'Louisiana', name:'LaSalle Immigration Court', line1:'LASALLE IMMIGRATION COURT', line2:'LASALLE, LOUISIANA',
+    judges:['Sherron Ashworth (SAH)','Maithe Gonzalez (MEG)','Kandra Robbins (KKR)'] },
+  { state:'Louisiana', name:'New Orleans Immigration Court', line1:'NEW ORLEANS IMMIGRATION COURT', line2:'NEW ORLEANS, LOUISIANA',
+    judges:['Sherron Ashworth (SAH)','Gary L. Bergosh (GYB)','Jon P. Calandruccio (JPC)','Mark Carter (MRC)','Joseph LaRocca (JBL)','Charlotte Marquez (CM1)','Eric Marsteller (EM2)','Catherine G. Phillips (CGP)'] },
+  { state:'Louisiana', name:'Oakdale Immigration Court', line1:'OAKDALE IMMIGRATION COURT', line2:'OAKDALE, LOUISIANA',
+    judges:['Sherron Ashworth (SAH)'] },
+  // ── MARYLAND ──
+  { state:'Maryland', name:'Baltimore Immigration Court', line1:'BALTIMORE IMMIGRATION COURT', line2:'BALTIMORE, MARYLAND',
+    judges:['Kuyomars Golparvar (KQG)','Julie Adams (JUA)','Lory G. Brown (KGB)','Alice Hartye (ASH)','Joshua D. Quidley (JDQ)','Pallavi Shirole (PLE)','Jeffrey Sprague (JTS)','Michael Paul Taylor (MCT)','Nelson Vargas-Padilla (NVP)','Gordan S. Vincent (GSV)'] },
+  { state:'Maryland', name:'Hyattsville Immigration Court', line1:'HYATTSVILLE IMMIGRATION COURT', line2:'HYATTSVILLE, MARYLAND',
+    judges:['Kuyomars Golparvar (KQG)','Tanisha Bowens-McCatty (TNB)','Mark K. Brooks (MKB)','Irma Diaz (IRD)','Michael C. Engel (MCE)','Michael Hussey (MLH)','Alison Igoe (AMI)','David Jones (DMJ)','Thanos Kanellakos (TSK)','Elizabeth Kessler (EAK)','June Lee (JEL)','Nancy Nevarez-Myrick (NNM)','Rebecca Niburg (RAN)','Gurney F. Pearsall III (GFP)','Yeshaya Poyurs (YEP)','Ana L. Quiros (ALQ)','John Rubenstein (JSR)','Dinesh Verma (DCV)'] },
+  // ── MASSACHUSETTS ──
+  { state:'Massachusetts', name:'Boston Immigration Court', line1:'BOSTON IMMIGRATION COURT', line2:'BOSTON, MASSACHUSETTS',
+    judges:['John Furlong Jr. (JMF)','Michelle Kahan (MEK)','Todd A. Masters (TAM)','Brenda O\'Malley (OMB)','Mario Sturla (MJS)'] },
+  { state:'Massachusetts', name:'Chelmsford Immigration Court', line1:'CHELMSFORD IMMIGRATION COURT', line2:'CHELMSFORD, MASSACHUSETTS',
+    judges:['Yul-mi Cho (YMC)','Luciana Dubuc (LUD)','Huy Le','Christine Olson','Sujata Rodgers (SUR)','Natalie Smith (NSM)','Jason Thomas (JAT)'] },
+  // ── MICHIGAN ──
+  { state:'Michigan', name:'Detroit Immigration Court', line1:'DETROIT IMMIGRATION COURT', line2:'DETROIT, MICHIGAN',
+    judges:['Jonathan Owens (JNO)','Christopher Cooper (CCR)','Katherine Hansen (KLH)','Mark Jebson (MJJ)','Jill K. Krishnan (KIL)','David Paruch (DHP)','Ian Simons (IRS)'] },
+  // ── MINNESOTA ──
+  { state:'Minnesota', name:'Fort Snelling Immigration Court', line1:'FORT SNELLING IMMIGRATION COURT', line2:'FORT SNELLING, MINNESOTA',
+    judges:['Audrey Carr (MAC)','Katherine Hansen (KLH)','Nathan M. Hansen (NHN)','Kalin Ivany (KMI)','Sarah Mazzie (SM1)','Monte Miller (MMR)','Brian Sardelli (BSI)'] },
+  // ── MISSOURI ──
+  { state:'Missouri', name:'Kansas City Immigration Court', line1:'KANSAS CITY IMMIGRATION COURT', line2:'KANSAS CITY, MISSOURI',
+    judges:['Jayme Salinardi (JSL)','Katherine Estes (KAE)','Jared Grimmer (JAG)','Justin Howard (JWH)','Scott Ison (SIN)','Colin Johnson (CPJ)'] },
+  // ── NEBRASKA ──
+  { state:'Nebraska', name:'Omaha Immigration Court', line1:'OMAHA IMMIGRATION COURT', line2:'OMAHA, NEBRASKA',
+    judges:['Alexandra Larsen (ARL)','Abby Meyer (ALM)','Matthew Morrissey (MEM)','Juan Román (JUR)','Eric Stransky (ERS)','Benjamin D. Williams (BEW)'] },
+  // ── NEVADA ──
+  { state:'Nevada', name:'Las Vegas Immigration Court', line1:'LAS VEGAS IMMIGRATION COURT', line2:'LAS VEGAS, NEVADA',
+    judges:['Jonathan W. Hitesman (JH1)','Glen R. Baker (GRB)','Daniel J. Daugherty (DJD)','Ann M. McDermott (MCD)','An M. Nguyen (AMN)','Lindsy R. Roberts (LRS)'] },
+  // ── NEW JERSEY ──
+  { state:'New Jersey', name:'Elizabeth Immigration Court', line1:'ELIZABETH IMMIGRATION COURT', line2:'ELIZABETH, NEW JERSEY',
+    judges:['Adam Panopoulos (APS)','Peter T. McCary (PMY)','Tamar Wilson (THW)'] },
+  { state:'New Jersey', name:'Newark Immigration Court', line1:'NEWARK IMMIGRATION COURT', line2:'NEWARK, NEW JERSEY',
+    judges:['Corey A. Combs (CBC)','Shana Chen (SCN)','Leo Finston (LAF)','Nicole Lane (NBL)','Carol Moore (CLM)','Leila Mullican (LMM)','Karen Nazaire (KAN)','Michael Neal (MMN)','Arya Ranasinghe (ASR)','Ramin Rastegar (RR2)','Dennis Ryan (DSR)'] },
+  // ── NEW MEXICO ──
+  { state:'New Mexico', name:'Otero Immigration Court', line1:'OTERO IMMIGRATION COURT', line2:'CHAPARRAL, NEW MEXICO',
+    judges:['Nathan Herbert (NHB)','Ralph Girvin (REG)','Jacinto Palomino (JP1)','Brock Taylor (BTR)','Samuel G. Williams (SGW)'] },
+  // ── NEW YORK ──
+  { state:'New York', name:'Batavia Immigration Court', line1:'BATAVIA IMMIGRATION COURT', line2:'BATAVIA, NEW YORK',
+    judges:['Brian Counihan (BRC)'] },
+  { state:'New York', name:'Buffalo Immigration Court', line1:'BUFFALO IMMIGRATION COURT', line2:'BUFFALO, NEW YORK',
+    judges:['Mary C. Baumgarten (KBJ)','Brandi M. Lohr (BIL)','Eric Schultz (ECS)'] },
+  { state:'New York', name:'New York - Broadway Immigration Court', line1:'NEW YORK IMMIGRATION COURT', line2:'NEW YORK, NEW YORK',
+    judges:['Khalilah Taylor (KHT)','Jacob T. Addicott (JTA)','J. Thomas Bartleson (TSB)','Andrew M. Calvelli (AWC)','Jennifer Chung (JCG)','Anna Diao (AAD)','Diane L. Dodd (DED)','Robert L. Gundlach (RTG)','Fayaz Habib (FZH)','Carolyn L. Krasinski (CKI)','Shirley Lazare-Raphael (SLR)','Tanawa Lebreton (TAL)','Kalenna Lee (KNL)','James M. McCarthy (JMM)','James R. McKee (JME)','Adam Perl (APL)','Aviva Poczter (AVP)','Chevone Sanon (CTS)','Jacob Weintraub (JWB)','ShaSha Xu (SSX)'] },
+  { state:'New York', name:'New York - Federal Plaza Immigration Court', line1:'NEW YORK IMMIGRATION COURT', line2:'NEW YORK, NEW YORK',
+    judges:['John P. Burns (JHB)','Lucy Baez (LCB)','Carol A. Crawford (IJC)','Christopher Cusmano','Kyle A. Dandelet (KED)','Samuel M. Factor (SAF)','Lena Golovnin (LGN)','Dorothy Harbeck (DH)','Linda Hristova (LAH)','Amanda Jeannopoulos (AJS)','Carrie Johnson-Papillo (CCJ)','Deborah E. Klahr (DKR)','Anna C. Little (ACL)','F. James Loprest Jr. (JLP)','Gioia Maiellano (GAM)','Michael G. McFarland (MMF)','Lucky Narain (LUN)','Dania Nassar (DNA)','Barbara A. Nelson (BAN)','Tiesha Peal (TAP)','Jonathan Reingold (JNR)','Cathy Sagesse (CSE)','John J. Siemietkowski (JNS)','Jem Sponzo (JCS)','Virna Wright (VAW)'] },
+  { state:'New York', name:'New York - Varick Immigration Court', line1:'NEW YORK IMMIGRATION COURT', line2:'NEW YORK, NEW YORK',
+    judges:['Khalilah Taylor (KHT)','Maria Akalski (MIA)','Shayne R. Burnham (SEB)','Charles R. Conroy (CC1)','John DeCure (JDE)','Margaret Kolbe (MGK)','Lisa W. Ling (LLG)','Francisco R. Prieto (FPO)','Dara F. Reid (DRD)'] },
+  { state:'New York', name:'Ulster Immigration Court', line1:'ULSTER IMMIGRATION COURT', line2:'NAPANOCH, NEW YORK',
+    judges:['John P. Burns (JHB)','Kyung Auh (KYA)','Kieran M. Lalor (KIL)','Charles M. Ouslander (CSO)'] },
+  // ── NORTH CAROLINA ──
+  { state:'North Carolina', name:'Charlotte Immigration Court', line1:'CHARLOTTE IMMIGRATION COURT', line2:'CHARLOTTE, NORTH CAROLINA',
+    judges:['Theresa Holmes-Simmons (THS)','Alicia Brooks (ABK)','Scott Criss (SC2)','Michael Hayden (MIH)','Amy Lee (ATL)','Eric Levinson (ELL)','Jeffery Nance (JRN)'] },
+  // ── NORTHERN MARIANA ISLANDS ──
+  { state:'Northern Mariana Islands', name:'Saipan Immigration Court', line1:'SAIPAN IMMIGRATION COURT', line2:'SAIPAN, CNMI',
+    judges:['Jason Waterloo (JWO)','Clarence Wagner (CMW)'] },
+  // ── OHIO ──
+  { state:'Ohio', name:'Cleveland Immigration Court', line1:'CLEVELAND IMMIGRATION COURT', line2:'CLEVELAND, OHIO',
+    judges:['Teresa L. Riley','Jonathan Owens (JNO)','Patrick Burke (PKB)','Richard Drucker (RDD)','Monte Horton (MEH)','Anthony J. Hurst (AHT)','Bruce Imbacuan (BIM)','Brandon Alexander Kennedy (BKY)','Donald Pashayan (DDP)','Jennifer Riedthaler-Williams (JRW)','Jeremy Santoro (JSA)','Michael Tripi (MLT)','David Whipple (DCW)'] },
+  // ── OREGON ──
+  { state:'Oregon', name:'Portland Immigration Court', line1:'PORTLAND IMMIGRATION COURT', line2:'PORTLAND, OREGON',
+    judges:['Theresa Scala (TSC)','Steven Caley (SDC)','Ryan J. Clark (RJC)','Michelle Slayton (MAS)'] },
+  // ── PENNSYLVANIA ──
+  { state:'Pennsylvania', name:'Philadelphia Immigration Court', line1:'PHILADELPHIA IMMIGRATION COURT', line2:'PHILADELPHIA, PENNSYLVANIA',
+    judges:['Ayodele A. Gansallo','Antonio Capistrano (AOC)','John Carle (FTP)','Lauren F. Farber (LTF)','Melissa Fox (MFX)','Mary Futcher (MAF)','Forrest Hoover (FHR)','Dawn Kulick (DKU)','Mary Lee (MCL)','William H. McDermott (WMD)','Joseph Scott (JHS)'] },
+  // ── PUERTO RICO ──
+  { state:'Puerto Rico', name:'Guaynabo Immigration Court', line1:'GUAYNABO IMMIGRATION COURT', line2:'GUAYNABO, PUERTO RICO',
+    judges:['Elisa M. Sukkar (EMS)','Julia Diaz-Rex (JDR)','Pedro Espinal (PJE)','Elvin Talavera-Peraza (ETP)'] },
+  // ── TENNESSEE ──
+  { state:'Tennessee', name:'Memphis Immigration Court', line1:'MEMPHIS IMMIGRATION COURT', line2:'MEMPHIS, TENNESSEE',
+    judges:['Robert P. Driscoll (RTD)','Alisha Campos (ACC)','Brandon Josephsen (BJJ)','Kelly Lake (KBL)','Matthew A. McLeod (MAM)','Irma Newburn (IJN)','David Russo (DDR)','Ryan Thompson (RNT)','Rachel L. Wilson (RLW)'] },
+  { state:'Tennessee', name:'Memphis Immigration Court - Louisville', line1:'MEMPHIS IMMIGRATION COURT', line2:'LOUISVILLE, KENTUCKY',
+    judges:['Robert P. Driscoll (RTD)','Lettricea Jefferson-Webb (LLJ)','Kelly Johnson (KJN)'] },
+  // ── TEXAS ──
+  { state:'Texas', name:'Conroe Immigration Court', line1:'CONROE IMMIGRATION COURT', line2:'CONROE, TEXAS',
+    judges:['Daniel P. Kinnicutt (DKT)','Chris Brisack (CBA)','Andrew Caborn (AJC)','Andrea Cole (ADC)','Timothy M. Cole (TMC)','Holly D\'Andrea (HDA)','Jared M. Kennedy (JAK)','John McPhail (JNM)','Robert Powell (RPL)','Billy Sapp (BSP)'] },
+  { state:'Texas', name:'Dallas Immigration Court', line1:'DALLAS IMMIGRATION COURT', line2:'DALLAS, TEXAS',
+    judges:['Tara Naselow-Nahas (TNN)','Attila Bogdan (ATB)','David G. Beyleryan (DBN)','Xiomara Davis-Gumbs (XDD)','Rodolfo Estrada (RSE)','Matthew Holt (MGH)','Jeff Huling (JWH)','Amy Johnson (AEJ)','Michael Kurban (MKB)','Ramos Ramos (RAR)','Peter M. Santos (PMS)','Daniel I. Smith (DIS)','Katherine Vaughan (KTV)'] },
+  { state:'Texas', name:'El Paso Immigration Court', line1:'EL PASO IMMIGRATION COURT', line2:'EL PASO, TEXAS',
+    judges:['Nathan Herbert (NHB)','Lori Burns (LMB)','Kaitlyn Carey (KAC)','James Comans (JAC)','Paul A. DeFonzo (PAD)','Philip L. Donahue (PLD)','Lacy Ferguson (LSF)','Carolyn Ennis (CDE)','Mario Mancillas (MAM)','Paige McComb (PMC)','Maria D. Milenkov (MDM)','Scott Nash (SJN)'] },
+  { state:'Texas', name:'Houston Immigration Court', line1:'HOUSTON IMMIGRATION COURT', line2:'HOUSTON, TEXAS',
+    judges:['Daniel P. Kinnicutt (DKT)','Karen Baird (KAB)','Wanda L. Cain (WLC)','James Chaney (JAC)','Bianca Forde-McLeod (BFM)','Ilse Garcia (IAG)','Bonnie Gonzalez (BMG)','Dianna Hinojosa (DKH)','Colton Holden (CKH)','Emily Holt (ESH)','Rodney Hoover (RWH)','Andrew Kwon (AJK)','Natalie Lehman (NVL)','Cynthia C. Monk (CCM)','Dolly Muzquiz (DAM)','Christine Navarrete-Wasson (CNW)','Tamara Pierce (TRP)','Thomas Roepke (TWR)','Jason Schmeichel (JSC)','Ana Paula Tufic de Almeida (APT)','Gus H. Villarreal (GHV)','Tracey L. Webb (TLW)','Adam Weltz (AWZ)'] },
+  { state:'Texas', name:'Laredo Immigration Court', line1:'LAREDO IMMIGRATION COURT', line2:'LAREDO, TEXAS',
+    judges:['Tara Naselow-Nahas (TNN)','Alex Aldana (AAA)','Adriana Garza (AHG)','William F. Kimball (WFK)','Kevin O\'Brien (KOB)','Christopher Shackelford (CCS)','Elias I. Zonana (EIZ)'] },
+  { state:'Texas', name:'Pearsall Immigration Court', line1:'PEARSALL IMMIGRATION COURT', line2:'PEARSALL, TEXAS',
+    judges:['Daniel P. Kinnicutt (DKT)','Jenniffer Aleman (JEA)','Moy Eng (MNE)','Katelyn Giesick (KEG)','Sandra Petzold (SAP)'] },
+  { state:'Texas', name:'Port Isabel Immigration Court', line1:'PORT ISABEL IMMIGRATION COURT', line2:'LOS FRESNOS, TEXAS',
+    judges:['Tara Naselow-Nahas (TNN)','Kathleen Campbell (KMC)','Cynthia Fujita (CLF)','Natalia Hnatiw (NAH)','Kelly Jara (KPJ)','Jennifer Lim (JYL)','Natalie Narvaez (NAN)','Ruben Perez (RPD)','Roberto Reyna (RAR)','Saira Siddiqui (SRS)'] },
+  { state:'Texas', name:'San Antonio Immigration Court', line1:'SAN ANTONIO IMMIGRATION COURT', line2:'SAN ANTONIO, TEXAS',
+    judges:['Daniel P. Kinnicutt (DKT)','Raymond Converse (RSC)','Karen Enriquez (KYE)','Selena Garza (SGN)','Olga Luna (OIL)','Stuart Marlowe (SAM)','Brian Meier (BEM)','Michael Moran (MEM)','Daniel Morales (DEM)','Renee Rosales (RMR)','Emily Saari (EJS)','Claudia Tenorio (CAT)'] },
+  // ── UTAH ──
+  { state:'Utah', name:'Salt Lake City Immigration Court', line1:'SALT LAKE CITY IMMIGRATION COURT', line2:'SALT LAKE CITY, UTAH',
+    judges:['Irene C. Feldman (ICF)','Rachel Buhrow (RMB)','Nathan Doyle (NAD)','Craig Harmon (CRH)','Kira King (KSK)','Kayla Mach (KAM)','Abigail Mace (AEM)','Tanya Wdowik (TKW)'] },
+  // ── VIRGINIA ──
+  { state:'Virginia', name:'Annandale Immigration Court', line1:'ANNANDALE IMMIGRATION COURT', line2:'ANNANDALE, VIRGINIA',
+    judges:['Kuyomars Golparvar (KQG)','Gita Bhargava (GKB)','Anthony Burgess (ATB)','Dana Colbertson (DCC)','Cynthia M. Colonna (CMC)','Robert P. Coulter Jr. (RPC)','Mia L. Huddleston (MLH)','Joshua Livingston (JAL)','Meredith H. Maine (MHM)','Tariq F. Osman (TFO)','Aditya Punjabi (ADP)','Cristal Rodriguez (CRR)','George T. Schulz (GTS)','Jessica E. Weisel (JEW)'] },
+  { state:'Virginia', name:'Arlington Immigration Court', line1:'ARLINGTON IMMIGRATION COURT', line2:'ARLINGTON, VIRGINIA',
+    judges:['Kuyomars Golparvar (KQG)','Eric A. Anderson (EAA)','Ila Deiss (IAD)','Michael Garrett (MEG)','Jeffrey N. Hagopian (JNH)','Monica N. Inniss (MNI)','Jeremy Krebs (JAK)','Siu Ha Lam (SHL)','Paul W. Ong (PWO)','Yolanda S. Reedy (YSR)','Krystal Samuels-Eason (KSE)','Donna Williams Sherrill (DWS)','Joseph N. Voboril (JNV)'] },
+  { state:'Virginia', name:'Farmville Immigration Court', line1:'FARMVILLE IMMIGRATION COURT', line2:'FARMVILLE, VIRGINIA',
+    judges:['Kuyomars Golparvar (KQG)','Tiffany Bowman (TLB)','Anthony Cleveland (ANT)','Michael W. Copley (MWC)','Marie Donahue (MFD)'] },
+  // ── WASHINGTON ──
+  { state:'Washington', name:'Seattle Immigration Court', line1:'SEATTLE IMMIGRATION COURT', line2:'SEATTLE, WASHINGTON',
+    judges:['Theresa Scala (TSC)','Josephine Bowe (JEB)','Sean Brown (SJB)','Lee Campbell (LCC)','Daniel Dowd (DMD)','Jodi Fried (JLF)','Paul Graber (PRG)','Bridget Guinto (BLG)','Megan Hayes (MCH)','Kathleen Moran (KAM)','Maia Nielsen (MAN)','Rebecca Oesterle (REO)','Pamela Oman (PJO)','Christopher Trost (CAT)','Christian Vargas (CBV)'] },
+  { state:'Washington', name:'Tacoma Immigration Court', line1:'TACOMA IMMIGRATION COURT', line2:'TACOMA, WASHINGTON',
+    judges:['Theresa Scala (TSC)','Sarah Benson (SKB)','Gina Clifford (GAC)','Stephen L. Fischbach (SLF)','Catherine L. Harvey (CLH)','Vanessa Prieto (VGP)','Adrienne Segovia (AAS)'] },
+];
+
+function initCourtSelect() {
+  const sel = document.getElementById('r_court');
+  let lastState = '';
+  EOIR_COURTS.forEach(c => {
+    if (c.state !== lastState) {
+      const og = document.createElement('optgroup');
+      og.label = '── ' + c.state + ' ──';
+      sel.appendChild(og);
+      lastState = c.state;
+    }
+    const opt = document.createElement('option');
+    opt.value = c.line1 + '|' + c.line2;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+}
+
+function populateJudges() {
+  const courtVal = document.getElementById('r_court').value;
+  const sel = document.getElementById('r_judge_select');
+  sel.innerHTML = '<option value="">— Select Judge —</option><option value="UNASSIGNED">Unassigned</option>';
+  if (!courtVal) return;
+  const selEl = document.getElementById('r_court');
+  const selectedText = selEl.options[selEl.selectedIndex]?.text || '';
+  const matches = EOIR_COURTS.filter(c => c.line1 + '|' + c.line2 === courtVal);
+  const found = EOIR_COURTS.find(c => c.name === selectedText) || matches[0];
+  if (!found) return;
+  found.judges.forEach(j => {
+    const opt = document.createElement('option');
+    opt.value = j;
+    opt.textContent = j;
+    sel.appendChild(opt);
+  });
+}
+
+function onJudgeSelect(v) {
+  const input = document.getElementById('r_judge');
+  if (v === 'UNASSIGNED') {
+    input.value = 'Unassigned';
+    input.disabled = true;
+    input.style.opacity = '0.45';
+  } else {
+    input.disabled = false;
+    input.style.opacity = '1';
+    input.value = v;
+  }
+}
+
+function toggleTBS(field) {
+  if (field === 'date') {
+    const cb = document.getElementById('tbs_date');
+    const inp = document.getElementById('r_hearing_date');
+    inp.disabled = cb.checked;
+    inp.style.opacity = cb.checked ? '0.45' : '1';
+    if (cb.checked) inp.value = '';
+    // also auto-check time if date is TBS
+    const timeCb = document.getElementById('tbs_time');
+    if (cb.checked && !timeCb.checked) {
+      timeCb.checked = true;
+      toggleTBS('time');
+    }
+  } else {
+    const cb = document.getElementById('tbs_time');
+    const inp = document.getElementById('r_hearing_time');
+    inp.disabled = cb.checked;
+    inp.style.opacity = cb.checked ? '0.45' : '1';
+    if (cb.checked) inp.value = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  AUTH & USER DATABASE
+// ═══════════════════════════════════════════════════════
+
+// Default users — stored in localStorage as 'nof_users'
+const DEFAULT_USERS = [
+  { username: 'Jmontejo', password: '123456', role: 'admin',  displayName: 'Juan Montejo' },
+  { username: 'Invitado1', password: '123456', role: 'user',   displayName: 'Invitado 1' },
+];
+
+function getUsers() {
+  const stored = localStorage.getItem('nof_users');
+  if (stored) return JSON.parse(stored);
+  // First run: seed defaults
+  localStorage.setItem('nof_users', JSON.stringify(DEFAULT_USERS));
+  return DEFAULT_USERS;
+}
+
+function saveUsers(users) {
+  localStorage.setItem('nof_users', JSON.stringify(users));
+}
+
+// Current session
+let currentUser = null;
+
+function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const errEl    = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  if (!username || !password) { errEl.textContent = 'Ingresa usuario y contraseña.'; return; }
+
+  const users = getUsers();
+  const user  = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+
+  if (!user) { errEl.textContent = 'Usuario o contraseña incorrectos.'; return; }
+
+  currentUser = user;
+  localStorage.setItem('nof_session', JSON.stringify({ username: user.username, role: user.role }));
+
+  document.getElementById('login-screen').style.display = 'none';
+  initSession();
+}
+
+function doLogout() {
+  currentUser = null;
+  localStorage.removeItem('nof_session');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+function initSession() {
+  // Update sidebar user info
+  document.getElementById('sidebar-username').textContent = currentUser.displayName || currentUser.username;
+  const badgeEl = document.getElementById('sidebar-admin-badge');
+  if (currentUser.role === 'admin') {
+    badgeEl.innerHTML = '<span class="admin-badge">ADMIN</span>';
+    document.getElementById('nav-admin-section').classList.remove('hidden');
+  } else {
+    badgeEl.innerHTML = '';
+    document.getElementById('nav-admin-section').classList.add('hidden');
+  }
+  // Each user sees only their own cases (prefix key with username)
+  renderCaseList();
+  renderAdminUsers();
+  renderCustomTemplates();
+}
+
+// Override cases storage to be per-user
+function getCasesKey() {
+  return 'nof_cases_' + (currentUser?.username || 'guest');
+}
+
+// ── Admin: user management ──
+function renderAdminUsers() {
+  if (!document.getElementById('admin-user-list')) return;
+  const users = getUsers();
+  document.getElementById('admin-user-list').innerHTML = users.map(u => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--paper2);border-radius:6px;margin-bottom:6px;">
+      <span style="font-size:14px;">${u.role === 'admin' ? '👑' : '👤'}</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;">${u.username}
+          ${u.role === 'admin' ? '<span class="admin-badge">ADMIN</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--ink3);">${u.displayName || ''}</div>
+      </div>
+      ${u.username !== 'Jmontejo' ? `<button class="btn btn-danger" style="font-size:11px;" onclick="deleteUser('${u.username}')">Eliminar</button>` : '<span style="font-size:11px;color:var(--ink3);">Protegido</span>'}
+    </div>`
+  ).join('');
+}
+
+function addUser() {
+  const name = document.getElementById('new-user-name').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const role = document.getElementById('new-user-role').value;
+  const msgEl = document.getElementById('admin-user-msg');
+
+  if (!name || !pass) { msgEl.style.color='#c0392b'; msgEl.textContent='Completa todos los campos.'; return; }
+
+  const users = getUsers();
+  if (users.find(u => u.username.toLowerCase() === name.toLowerCase())) {
+    msgEl.style.color='#c0392b'; msgEl.textContent='Ese username ya existe.'; return;
+  }
+
+  users.push({ username: name, password: pass, role, displayName: name });
+  saveUsers(users);
+  document.getElementById('new-user-name').value = '';
+  document.getElementById('new-user-pass').value = '';
+  msgEl.style.color='var(--green)'; msgEl.textContent='✓ Usuario creado.';
+  setTimeout(() => msgEl.textContent = '', 2500);
+  renderAdminUsers();
+}
+
+function deleteUser(username) {
+  if (!confirm('¿Eliminar usuario ' + username + '?')) return;
+  let users = getUsers().filter(u => u.username !== username);
+  saveUsers(users);
+  renderAdminUsers();
+}
+
+// ── Admin: custom templates ──
+function getCustomTemplates() {
+  return JSON.parse(localStorage.getItem('nof_custom_templates') || '[]');
+}
+
+function renderCustomTemplates() {
+  const tmplEl = document.getElementById('custom-templates-list');
+  if (!tmplEl) return;
+  const templates = getCustomTemplates();
+  if (!templates.length) {
+    tmplEl.innerHTML = '<p style="font-size:12px;color:var(--ink3);margin-bottom:8px;">Ningún template personalizado cargado aún.</p>';
+    return;
+  }
+  const isAdmin = currentUser?.role === 'admin';
+  tmplEl.innerHTML = templates.map((t, i) => `
+    <div class="tmpl-card">
+      <div class="tmpl-icon">📎</div>
+      <div>
+        <div class="tmpl-name">${t.name}</div>
+        <div class="tmpl-meta">${t.type} · Subido por ${t.uploadedBy} · ${t.date}</div>
+      </div>
+      <div class="tmpl-actions">
+        <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="downloadTemplate(${i})">⬇ Descargar</button>
+        ${isAdmin ? `<button class="btn btn-danger" style="font-size:11px;" onclick="deleteTemplate(${i})">Eliminar</button>` : ''}
+      </div>
+    </div>`
+  ).join('');
+}
+
+function uploadTemplates(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const templates = getCustomTemplates();
+
+  let processed = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      templates.push({
+        name: file.name.replace(/\.[^.]+$/, ''),
+        type: file.name.split('.').pop().toUpperCase(),
+        uploadedBy: currentUser?.username || 'admin',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+        data: e.target.result,
+        filename: file.name,
+      });
+      processed++;
+      if (processed === files.length) {
+        localStorage.setItem('nof_custom_templates', JSON.stringify(templates));
+        renderCustomTemplates();
+        input.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function downloadTemplate(idx) {
+  const t = getCustomTemplates()[idx];
+  if (!t) return;
+  const a = document.createElement('a');
+  a.href = t.data;
+  a.download = t.filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function deleteTemplate(idx) {
+  if (!confirm('¿Eliminar este template?')) return;
+  const templates = getCustomTemplates();
+  templates.splice(idx, 1);
+  localStorage.setItem('nof_custom_templates', JSON.stringify(templates));
+  renderCustomTemplates();
+}
+
+// ── Override showView to restrict admin panel ──
+const _showView = showView;
+showView = function(v) {
+  if (v === 'admin' && currentUser?.role !== 'admin') return;
+  _showView(v);
+  // Update nav active state for admin
+  if (v === 'admin') {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-admin')?.classList.add('active');
+    document.getElementById('view-admin').classList.remove('hidden');
+    ['view-cases','view-form'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  } else {
+    document.getElementById('view-admin')?.classList.add('hidden');
+  }
+};
+
+// ── Override cases to be per-user ──
+const _renderCaseList = renderCaseList;
+renderCaseList = function() {
+  // Re-load cases from per-user key
+  cases = JSON.parse(localStorage.getItem(getCasesKey()) || '[]');
+  _renderCaseList();
+};
+
+const _saveCase = saveCase;
+saveCase = function() {
+  // Ensure cases array is from current user before saving
+  cases = JSON.parse(localStorage.getItem(getCasesKey()) || '[]');
+  _saveCase();
+  // Save back to per-user key
+  localStorage.setItem(getCasesKey(), JSON.stringify(cases));
+};
+
+// Patch original saveCase to use per-user key
+// (replace localStorage key inline)
+document.getElementById('r_svc_date').value = todayStr();
+initCourtSelect();
+
+// Check for existing session
+(function() {
+  const stored = localStorage.getItem('nof_session');
+  if (stored) {
+    const session = JSON.parse(stored);
+    const users = getUsers();
+    const user = users.find(u => u.username === session.username);
+    if (user) {
+      currentUser = user;
+      document.getElementById('login-screen').style.display = 'none';
+      initSession();
+      return;
+    }
+  }
+  // No session — show login, don't render cases yet
+  document.getElementById('login-screen').style.display = 'flex';
+  setTimeout(() => document.getElementById('login-user').focus(), 100);
+})();
+
+// Check if docx lib loaded — if not, show warning on export button
+window.addEventListener('load', () => {
+  const btn = document.getElementById('export-btn');
+  if (!window.docx) {
+    if (btn) {
+      btn.textContent = '⚠ DOCX lib no cargó — necesita internet';
+      btn.style.background = '#c0392b';
+      btn.title = 'Abre el archivo con internet activo para cargar la librería docx desde CDN';
+    }
+  }
+});
+</script>
+</body>
+</html>
